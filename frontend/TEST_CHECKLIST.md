@@ -2,9 +2,7 @@
 
 **What was run:** a scripted Playwright (Chromium) walkthrough of the production build (`npm run build` + `vite preview`) at 1440×900, plus a 390×844 mobile pass. Run on the redesigned UI (light theme); both themes were also checked by screenshot.
 
-**Important:** the backend does not exist yet. These tests ran against a **throwaway mock of the API contract** (kept outside the repo), so they prove the UI logic and contract handling, **not** the real backend, hashing, JWT verification or MongoDB persistence. "Persistence" below means the session and data survived a browser refresh against the mock only.
-
-Re-run this checklist against the real API once it is built.
+**Environment:** the frontend production build was driven in a browser against the **real backend** (`backend/`, Express + Mongoose) and a real MongoDB-compatible database (FerretDB 1.24, local). It was **not** run against MongoDB Atlas itself, because no Atlas credentials were available. Re-run the checklist once with your Atlas `MONGODB_URI` to confirm. "Persistence" below means data and the session survived a browser refresh, and the saved documents were inspected in the database afterwards (bcrypt hashes only, every lead owned, completion time set only on completed follow-ups, no orphaned follow-ups).
 
 | # | Area | Test case | Expected | Actual | Result |
 | --- | --- | --- | --- | --- | --- |
@@ -29,7 +27,7 @@ Re-run this checklist against the real API once it is built.
 | 19 | Follow-ups | Schedule one due yesterday | Appears flagged Overdue | Flagged | PASS |
 | 20 | Follow-ups | Mark complete | Toast, moves to Completed | Worked | PASS |
 | 21 | Follow-ups | Completed tab | Lists the completed item | Listed | PASS |
-| 22 | Persistence | Refresh browser | Still signed in, data still shown (mock) | Worked | PASS |
+| 22 | Persistence | Refresh browser | Still signed in, data still shown | Worked | PASS |
 | 23 | Dashboard | Counts after test data | Total 3, Won 1 | 3 and 1 | PASS |
 | 24 | Responsive | 390px viewport | No horizontal scroll | None | PASS |
 | 25 | Auth | Log out | Back to `/login` | Worked | PASS |
@@ -40,9 +38,9 @@ Re-run this checklist against the real API once it is built.
 
 ## Not yet tested
 
-- Anything involving the real backend: password hashing, JWT expiry/signature checks, record-ownership checks (403/404), duplicate-email 409, server-side validation, MongoDB persistence.
+- MongoDB Atlas itself (see Environment above). Server-side rules, ownership, hashing and token handling are covered by the 39 backend database tests in `backend/test/api.test.js`, not by this browser checklist.
 - API error states: 500 and offline/timeout screens were implemented but not triggered in this run.
-- Dashboard "Pending follow-ups" and "Overdue" metrics against real data (the mock computed them, the real API must).
+- The Pending and Overdue dashboard cards were not asserted in the browser run (only Total and Won were). The backend tests check all five against known data.
 - Keyboard-only and screen-reader pass, cross-browser (only Chromium used).
 - Row 26 (stage stepper) was checked in a separate scripted run, not in the main 28-check walkthrough.
 - Dark theme was checked by screenshot only, not by automated assertions.

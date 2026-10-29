@@ -6,6 +6,11 @@ import mongoose from 'mongoose'
 import { User, Lead, Activity } from '../src/models/index.js'
 
 const id = () => new mongoose.Types.ObjectId()
+
+// Activity validation confirms the lead exists through the database. Stub that lookup so
+// these schema tests stay database-free (the real behaviour is covered in api.test.js).
+let leadExists = true
+Lead.exists = async () => (leadExists ? { _id: 1 } : null)
 // Resolves to the list of invalid field names ([] when the document is valid)
 const fieldsWithErrors = async (doc) => {
   try {
@@ -115,4 +120,14 @@ test('Activity: completedAt is cleared when set back to pending', async () => {
   a.status = 'Pending'
   await a.validate()
   assert.equal(a.completedAt, undefined)
+})
+
+test('Activity: rejects a lead that does not exist or is not owned by the user', async () => {
+  leadExists = false
+  try {
+    const a = new Activity({ leadId: id(), title: 'x', dueAt: new Date(), createdBy: id() })
+    assert.deepEqual(await fieldsWithErrors(a), ['leadId'])
+  } finally {
+    leadExists = true
+  }
 })

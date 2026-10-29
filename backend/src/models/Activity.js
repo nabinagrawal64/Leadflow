@@ -34,6 +34,17 @@ const activitySchema = new mongoose.Schema(
   },
 )
 
+// Data integrity: a follow-up must reference an existing lead that the same user owns.
+// Runs on create and whenever leadId changes. The message is deliberately generic, so it
+// does not reveal whether someone else's lead exists.
+activitySchema.pre('validate', async function () {
+  if (!this.leadId || !this.createdBy) return // the required-field validators report these
+  if (!this.isNew && !this.isModified('leadId')) return
+  const Lead = mongoose.model('Lead') // looked up lazily: Lead.js imports this file
+  const found = await Lead.exists({ _id: this.leadId, createdBy: this.createdBy })
+  if (!found) this.invalidate('leadId', 'Lead not found')
+})
+
 // Keep status and completedAt consistent whenever a document is saved
 activitySchema.pre('validate', function () {
   if (this.status === 'Completed' && !this.completedAt) this.completedAt = new Date()

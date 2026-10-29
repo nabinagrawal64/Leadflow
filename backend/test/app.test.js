@@ -5,6 +5,8 @@ import assert from 'node:assert/strict'
 
 process.env.MONGODB_URI = 'mongodb://127.0.0.1:27017/leadflow-test'
 process.env.CLIENT_ORIGIN = 'http://localhost:5173'
+process.env.JWT_SECRET = 'test-secret-test-secret-test-secret-123'
+process.env.BCRYPT_ROUNDS = '4'
 
 let server, base
 before(async () => {

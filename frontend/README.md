@@ -2,7 +2,7 @@
 
 React + Vite single-page app for the VyorAI SDE intern assignment. It talks to the LeadFlow REST API (`/api/v1`) over JSON with a bearer token.
 
-> **Status:** the frontend is complete and builds cleanly. The Express/MongoDB backend is the next milestone, so this app has only been exercised against a throwaway mock of the API contract below (see [TEST_CHECKLIST.md](./TEST_CHECKLIST.md)). It has **not** yet been tested against the real backend.
+> **Status:** complete and working end to end. The browser walkthrough in [TEST_CHECKLIST.md](./TEST_CHECKLIST.md) was run against the real backend and a real database.
 
 ## Stack
 
@@ -83,7 +83,7 @@ Design choices worth knowing:
 - **Accessibility:** labelled controls, visible focus rings, `role="alert"` on errors, keyboard-closable dialogs, `prefers-reduced-motion` respected.
 - **Time:** the API sends ISO UTC timestamps; the UI shows them in the viewer's local timezone and sends `dueAt` as an ISO string.
 
-## API contract the frontend expects
+## API contract the frontend uses
 
 Base path `/api/v1`. Success: `{ "success": true, "message": "...", "data": ... }`. Error: `{ "success": false, "message": "...", "errors": [{ "field": "email", "message": "..." }] }` (`path` or `param` also accepted as the field key).
 
@@ -107,7 +107,6 @@ Stages: New, Contacted, Qualified, Proposal Sent, Won, Lost. Activity types: Cal
 
 ## Known limitations
 
-- Not yet verified against the real backend (not built yet).
 - No pagination or sorting on the leads table (optional in the assignment).
 - No automated unit tests; verification so far is a scripted browser walkthrough.
 - Token stored in `localStorage` (see note above).

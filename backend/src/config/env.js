@@ -20,6 +20,13 @@ if (mongoUri && /<db_password>|<db_user>|<cluster-host>/.test(mongoUri)) {
   errors.push('MONGODB_URI still contains placeholders. Paste your real Atlas connection string')
 }
 
+const jwtSecret = required('JWT_SECRET')
+if (jwtSecret && jwtSecret.length < 32) errors.push('JWT_SECRET must be at least 32 characters')
+if (jwtSecret && /^replace-with/i.test(jwtSecret)) errors.push('JWT_SECRET is still the placeholder. Generate a real one (see .env.example)')
+
+const bcryptRounds = Number(process.env.BCRYPT_ROUNDS || 12)
+if (!Number.isInteger(bcryptRounds) || bcryptRounds < 4 || bcryptRounds > 15) errors.push('BCRYPT_ROUNDS must be a whole number from 4 to 15')
+
 if (errors.length) {
   // Print the problems, never the values (the URI contains a password).
   console.error('Invalid environment configuration:\n' + errors.map((e) => `  - ${e}`).join('\n'))
@@ -33,6 +40,7 @@ export const env = Object.freeze({
   port,
   clientOrigin: process.env.CLIENT_ORIGIN?.trim() || 'http://localhost:5173',
   mongoUri,
-  jwtSecret: process.env.JWT_SECRET?.trim(),
+  jwtSecret,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN?.trim() || '1d',
+  bcryptRounds,
 })
