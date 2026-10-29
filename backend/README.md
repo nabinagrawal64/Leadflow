@@ -60,7 +60,7 @@ The server checks these at startup and refuses to start with a clear message if 
 | --- | --- |
 | `npm run dev` | Start with auto-restart, loading `.env` |
 | `npm start` | Start for production (the host provides the environment) |
-| `npm test` | Run the tests. The 39 database tests are skipped unless `TEST_MONGODB_URI` is set |
+| `npm test` | Run the tests. The 59 database tests are skipped unless `TEST_MONGODB_URI` is set |
 
 ## API
 
@@ -109,7 +109,7 @@ src/
   controllers/       auth, lead, activity, dashboard
   routes/            one router per resource, mounted in index.js
   utils/             token.js, response.js
-test/                models.test.js, app.test.js, api.test.js
+test/                models.test.js, app.test.js, api.test.js, endpoints.test.js
 ```
 
 ## Data model
@@ -128,10 +128,12 @@ Deleting a lead removes its follow-ups. This works through `findOneAndDelete` (w
 
 ## Testing
 
-`npm test` runs 63 tests:
+`npm test` runs 84 tests:
 
-- **24 without a database:** model validation rules, app shell (503 health when the DB is down, JSON 404s, malformed JSON, CORS, security headers).
-- **39 with a database** (`api.test.js`), following the assignment's section 9 checklist: register, duplicate email, login (valid, wrong password, unknown email), missing/forged/expired/`alg:none` tokens; lead create/view/edit/search/filter/delete and every rejection rule; follow-up create/complete and invalid or nonexistent lead; dashboard counts against known data; cross-user access (read, edit, delete, create-on-another's-lead); unique email enforced by the database; cascade delete; no password hash or stack trace in any response.
+- **25 without a database:** model validation rules, app shell (503 health when the DB is down, JSON 404s, malformed JSON, CORS, security headers), and an unexpected exception becoming a generic 500.
+- **59 with a database:**
+  - `api.test.js` (39) follows the assignment's section 9 checklist: register, duplicate email, login (valid, wrong password, unknown email), missing/forged/expired/`alg:none` tokens; lead create/view/edit/search/filter/delete and every rejection rule; follow-up create/complete and invalid or nonexistent lead; dashboard counts against known data; cross-user access (read, edit, delete, create-on-another's-lead); unique email enforced by the database; cascade delete; no password hash or stack trace in any response.
+  - `endpoints.test.js` (20) is a contract test of section 5: each of the 13 endpoints in the PDF's table exists, protected ones return 401 without a token, a full walkthrough of all 13 returns the documented success codes and `{ success, message, data }` shape, and the 400, 401, 404 and 409 error codes use the `{ success, message, errors }` shape. `/health` is checked for leaked secrets.
 
 ```bash
 TEST_MONGODB_URI=mongodb://127.0.0.1:27017 npm test

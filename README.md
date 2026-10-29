@@ -58,6 +58,41 @@ Section 4 (data model) and section 7 (screens) of the assignment, and where each
 | One lead, many follow-ups | `leadId` reference | API test |
 | Deleting a lead deletes its follow-ups | `Lead.js` hook | API test, and no orphans found in the database |
 
+### Section 5: minimum REST API (base path `/api/v1`)
+
+All 13 endpoints exist. `backend/test/endpoints.test.js` checks each one against the PDF's table.
+
+| Method | Endpoint | Purpose in the PDF | Implemented in |
+| --- | --- | --- | --- |
+| GET | `/health` | Health check; do not expose secrets | `routes/health.js` (tested: no secrets in the response) |
+| POST | `/auth/register` | Validate input, hash password and create user | `controllers/auth.js` (bcrypt) |
+| POST | `/auth/login` | Validate credentials and return token plus safe profile | `controllers/auth.js` |
+| GET | `/auth/me` | Return authenticated user's safe profile | `controllers/auth.js` |
+| GET | `/leads` | List leads; support search and stage filter | `controllers/lead.js` |
+| POST | `/leads` | Create a lead | `controllers/lead.js` |
+| GET | `/leads/:id` | Get a lead after access check | `controllers/lead.js` |
+| PATCH | `/leads/:id` | Update permitted lead fields only | `controllers/lead.js`, `validators/lead.js` |
+| DELETE | `/leads/:id` | Delete lead and associated follow-ups | `controllers/lead.js`, `Lead.js` hook |
+| GET | `/activities` | List follow-ups; basic status filter is enough | `controllers/activity.js` (also filters by lead) |
+| POST | `/activities` | Create a follow-up | `controllers/activity.js` |
+| PATCH | `/activities/:id` | Update permitted fields or mark completed | `controllers/activity.js` |
+| GET | `/dashboard/summary` | Return basic metrics calculated from saved records | `controllers/dashboard.js` |
+
+Response conventions: success is `{ "success": true, "message": "Created", "data": {} }` and errors are `{ "success": false, "message": "Validation failed", "errors": [] }`. Status codes used: 200, 201, 400 invalid input, 401 unauthenticated, 404 not found, 409 duplicate, 500 unexpected (generic message, no stack trace, no internals). **403 is not used:** a request for another user's record returns 404, so a stranger cannot tell whether an id exists. The PDF says "where relevant", so this is a deliberate choice.
+
+### Section 6: business rules
+
+| Rule | Where it is enforced | Verified by |
+| --- | --- | --- |
+| Lead name required; at least one of email or phone | zod validator and the `Lead` model (also re-checked when editing) | API tests, including an edit that would remove the last contact method |
+| Reject invalid email when supplied; reject negative budgets | `validators/lead.js`, `Lead.js` | API tests |
+| Allow-list editable fields; reject `_id`, `createdBy`, timestamps | strict zod objects (unknown fields return 400) | API tests for each field |
+| Never use a user id from the request body for ownership | `createdBy` comes from the verified token; every query is filtered by it | API tests: supplying it returns 400; a second user sees nothing of the first |
+| Dashboard values come from database records | `controllers/dashboard.js` (`countDocuments`) | API test with known data, before and after a delete |
+| Active leads are those not in Won or Lost | `CLOSED_STAGES` in `constants/index.js` | dashboard test |
+| Overdue = Pending with `dueAt` earlier than current server time; completed never overdue | `controllers/dashboard.js` | dashboard test with past, future and completed follow-ups |
+| Valid date-time values, documented timezone assumption | `dueAt` must be ISO 8601 with a timezone, stored and compared in UTC | API tests reject `"tomorrow"`; documented in `backend/README.md` |
+
 ### Section 7: minimum frontend screens
 
 | Screen | Route | Behaviour delivered |
@@ -76,4 +111,4 @@ I could not reach Atlas while building, so please confirm it once on your side:
 
 1. Follow the Atlas steps in `backend/README.md` and run `npm run dev`. The log should say `MongoDB connected`.
 2. Register and add a lead in the app, then look in Atlas (Browse Collections) for `users`, `leads` and `activities`.
-3. Optional: `TEST_MONGODB_URI=<a local or disposable MongoDB> npm test` in `backend/` runs all 63 tests.
+3. Optional: `TEST_MONGODB_URI=<a local or disposable MongoDB> npm test` in `backend/` runs all 84 tests.
