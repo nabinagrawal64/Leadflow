@@ -1,0 +1,37 @@
+{
+  "demoUser": {
+    "name": "Demo User",
+    "email": "demo@leadflow.test",
+    "password": "Demo@12345"
+  },
+  "leads": [
+    { "key": "aarav", "name": "Aarav Sharma", "company": "Northwind Pvt Ltd", "email": "aarav@northwind.in", "phone": "+91 98765 43210", "source": "Referral", "serviceInterest": "Web Development", "budget": 85000, "stage": "Qualified" },
+    { "key": "priya", "name": "Priya Nair", "company": "Lumen Studio", "email": "priya@lumenstudio.co", "phone": "+91 99887 76655", "source": "Website", "serviceInterest": "Branding", "budget": 120000, "stage": "Contacted" },
+    { "key": "karan", "name": "Karan Mehta", "company": "Orbit Labs", "email": "karan@orbitlabs.io", "source": "Social Media", "serviceInterest": "Digital Marketing", "budget": 450000, "stage": "Proposal Sent" },
+    { "key": "sana", "name": "Sana Qureshi", "company": "Bloom & Co", "email": "sana@bloomco.in", "source": "Email", "serviceInterest": "SEO", "budget": 60000, "stage": "New" },
+    { "key": "dev", "name": "Dev Patel", "company": "Harbor Foods", "email": "dev@harborfoods.in", "source": "Direct Outreach", "serviceInterest": "Web Development", "budget": 90000, "stage": "Lost" },
+    { "key": "meera", "name": "Meera Iyer", "company": "Brightside Co", "email": "meera@brightside.co", "source": "Referral", "serviceInterest": "Digital Marketing", "budget": 275000, "stage": "Won" },
+    { "key": "rohan", "name": "Rohan Das", "company": "Pixel Forge", "email": "rohan@pixelforge.io", "phone": "+91 90000 11122", "source": "Website", "serviceInterest": "Web Development", "budget": 320000, "stage": "Proposal Sent" },
+    { "key": "ananya", "name": "Ananya Rao", "phone": "+91 91234 56789", "source": "Social Media", "serviceInterest": "Branding", "stage": "New" },
+    { "key": "vikram", "name": "Vikram Singh", "company": "Summit Realty", "email": "vikram@summitrealty.in", "source": "Referral", "serviceInterest": "SEO", "budget": 150000, "stage": "Contacted" },
+    { "key": "isha", "name": "Isha Kapoor", "company": "Kapoor & Sons", "email": "isha@kapoorandsons.com", "source": "Other", "serviceInterest": "Other", "budget": 40000, "stage": "Qualified" },
+    { "key": "arjun", "name": "Arjun Menon", "company": "Greenleaf Organics", "email": "arjun@greenleaf.in", "source": "Website", "serviceInterest": "Digital Marketing", "budget": 95000, "stage": "Won" },
+    { "key": "neha", "name": "Neha Joshi", "company": "Studio Neha", "email": "neha@studioneha.com", "source": "Email", "serviceInterest": "Branding", "budget": 70000, "stage": "Lost" }
+  ],
+  "activities": [
+    { "lead": "aarav", "title": "Intro call about website redesign", "type": "Call", "dueInDays": -3, "hour": 11, "status": "Completed" },
+    { "lead": "aarav", "title": "Send revised proposal", "type": "Email", "dueInDays": 1, "hour": 10 },
+    { "lead": "priya", "title": "Follow up on brand brief", "type": "Call", "dueInDays": -2, "hour": 15 },
+    { "lead": "priya", "title": "Share portfolio samples", "type": "Email", "dueInDays": 3, "hour": 12 },
+    { "lead": "karan", "title": "Proposal walkthrough meeting", "type": "Meeting", "dueInDays": 2, "hour": 16 },
+    { "lead": "karan", "title": "Negotiate pricing", "type": "Call", "dueInDays": -1, "hour": 10 },
+    { "lead": "sana", "title": "Discovery call", "type": "Call", "dueInDays": 1, "hour": 9 },
+    { "lead": "rohan", "title": "Send contract draft", "type": "Task", "dueInDays": -4, "hour": 14, "status": "Completed" },
+    { "lead": "rohan", "title": "Contract review meeting", "type": "Meeting", "dueInDays": 5, "hour": 11 },
+    { "lead": "vikram", "title": "Intro email", "type": "Email", "dueInDays": -5, "hour": 9, "status": "Completed" },
+    { "lead": "vikram", "title": "Schedule site audit call", "type": "Call", "dueInDays": 4, "hour": 17 },
+    { "lead": "isha", "title": "Qualify budget and timeline", "type": "Call", "dueInDays": -6, "hour": 10 },
+    { "lead": "meera", "title": "Project kickoff meeting", "type": "Meeting", "dueInDays": -7, "hour": 11, "status": "Completed" },
+    { "lead": "ananya", "title": "Call to introduce services", "type": "Call", "dueInDays": 2, "hour": 10 }
+  ]
+}
