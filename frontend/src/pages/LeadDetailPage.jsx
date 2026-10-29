@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Briefcase, CalendarPlus, Mail, Pencil, Phone, Tag, Trash2, Wallet } from 'lucide-react'
 import { activitiesApi, leadsApi, parseApiError } from '../lib/api'
 import { useAsync } from '../lib/useAsync'
-import { formatBudget, formatDate, initials, leadIdOf } from '../lib/format'
+import { formatBudget, formatDate, leadIdOf } from '../lib/format'
 import { useToast } from '../context/ToastContext'
 import PageHeader from '../components/ui/PageHeader'
 import Button from '../components/ui/Button'
@@ -12,23 +12,23 @@ import { EmptyState, ErrorState, Spinner } from '../components/ui/States'
 import LeadForm from '../components/LeadForm'
 import FollowUpModal from '../components/FollowUpModal'
 import FollowUpRow from '../components/FollowUpRow'
-import { StageSelect } from './LeadsPage'
+import { StageStepper } from '../components/StageChevrons'
 
 const BackLink = () => (
-  <Link to="/leads" className="mb-3 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-brand-600">
+  <Link to="/leads" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-primary">
     <ArrowLeft className="size-4" aria-hidden /> Back to leads
   </Link>
 )
 
 function Detail({ icon: Icon, label, children }) {
   return (
-    <div className="flex items-start gap-3">
-      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
+    <div className="flex items-start gap-3.5 py-3.5">
+      <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-sunk text-muted">
         <Icon className="size-4" aria-hidden />
       </span>
       <div className="min-w-0">
-        <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
-        <dd className="mt-0.5 break-words text-sm text-ink">{children || <span className="text-slate-400">Not provided</span>}</dd>
+        <dt className="text-[13px] font-semibold text-muted">{label}</dt>
+        <dd className="mt-0.5 break-words text-[15px] font-medium text-ink">{children || <span className="font-normal text-faint">Not provided</span>}</dd>
       </div>
     </div>
   )
@@ -47,8 +47,8 @@ export function NewLeadPage() {
 
   return (
     <>
-      <PageHeader back={<BackLink />} title="New lead" description="Capture a prospective client." />
-      <div className="max-w-3xl rounded-xl border border-line bg-white p-5 sm:p-6">
+      <PageHeader back={<BackLink />} title="New lead" description="Capture a prospective client. Name and one way to reach them is enough to start." />
+      <div className="max-w-3xl rounded-3xl border border-line bg-surface p-6 sm:p-8">
         <LeadForm onSubmit={create} onCancel={() => navigate('/leads')} submitLabel="Create lead" />
       </div>
     </>
@@ -69,15 +69,28 @@ export default function LeadDetailPage() {
   const [showFollowUp, setShowFollowUp] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [completingId, setCompletingId] = useState(null)
+  const [movingStage, setMovingStage] = useState(false)
 
-  const setEditing = (on) =>
-    setParams(on ? { edit: '1' } : {}, { replace: true })
+  const setEditing = (on) => setParams(on ? { edit: '1' } : {}, { replace: true })
 
   const save = async (payload) => {
     await leadsApi.update(id, payload)
     toast.success('Lead updated')
     setEditing(false)
     lead.reload()
+  }
+
+  const changeStage = async (stage) => {
+    setMovingStage(true)
+    try {
+      await leadsApi.update(id, { stage })
+      toast.success(`Moved to ${stage}`)
+      lead.reload()
+    } catch (err) {
+      toast.error(parseApiError(err).message)
+    } finally {
+      setMovingStage(false)
+    }
   }
 
   const remove = async () => {
@@ -109,7 +122,7 @@ export default function LeadDetailPage() {
     return (
       <>
         <BackLink />
-        <div className="rounded-xl border border-line bg-white">
+        <div className="rounded-3xl border border-line bg-surface">
           <ErrorState message={lead.error} onRetry={lead.reload} />
         </div>
       </>
@@ -129,46 +142,43 @@ export default function LeadDetailPage() {
       <PageHeader
         back={<BackLink />}
         title={l.name}
-        description={l.company || 'No company on file'}
+        description={l.company ? `${l.company}, added ${formatDate(l.createdAt)}` : `Added ${formatDate(l.createdAt)}`}
         actions={
           <>
-            <StageSelect lead={l} onChanged={lead.reload} className="!h-10 !px-4 !text-sm" />
             {!editing && (
               <Button variant="secondary" onClick={() => setEditing(true)}><Pencil className="size-4" aria-hidden /> Edit</Button>
             )}
-            <Button variant="secondary" className="!text-rose-600 hover:!bg-rose-50" onClick={() => setShowDelete(true)}>
+            <Button variant="secondary" className="!text-danger" onClick={() => setShowDelete(true)}>
               <Trash2 className="size-4" aria-hidden /> Delete
             </Button>
           </>
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-5">
+      {/* Stage control: the pipeline, as buttons */}
+      <section aria-label="Pipeline stage" className="mb-8 rounded-3xl border border-line bg-surface p-5 sm:p-6">
+        <p className="mb-4 text-sm font-semibold text-muted">Stage: pick where this lead stands now</p>
+        <StageStepper value={l.stage} onChange={changeStage} disabled={movingStage} />
+      </section>
+
+      <div className="grid gap-8 lg:grid-cols-[1fr_1.45fr]">
         {/* Lead information */}
-        <section className="rounded-xl border border-line bg-white p-5 sm:p-6 lg:col-span-2" aria-label="Lead information">
+        <section aria-label="Lead information">
           {editing ? (
-            <>
-              <h2 className="mb-5 text-base font-semibold">Edit lead</h2>
+            <div className="rounded-3xl border border-line bg-surface p-6 sm:p-7">
+              <h2 className="mb-5 text-xl font-bold">Edit lead</h2>
               <LeadForm lead={l} onSubmit={save} onCancel={() => setEditing(false)} submitLabel="Save changes" />
-            </>
+            </div>
           ) : (
             <>
-              <div className="mb-6 flex items-center gap-3.5">
-                <span className="flex size-12 items-center justify-center rounded-full bg-brand-50 text-base font-bold text-brand-700">
-                  {initials(l.name)}
-                </span>
-                <div className="min-w-0">
-                  <h2 className="truncate text-base font-semibold">{l.name}</h2>
-                  <p className="text-xs text-ink-soft">Added {formatDate(l.createdAt)}</p>
-                </div>
-              </div>
-              <dl className="space-y-5">
+              <h2 className="border-t-2 border-ink pt-4 text-xl font-bold">Details</h2>
+              <dl className="mt-2 divide-y divide-line">
                 <Detail icon={Briefcase} label="Company">{l.company}</Detail>
                 <Detail icon={Mail} label="Email">
-                  {l.email && <a href={`mailto:${l.email}`} className="text-brand-600 hover:text-brand-700">{l.email}</a>}
+                  {l.email && <a href={`mailto:${l.email}`} className="text-primary hover:underline">{l.email}</a>}
                 </Detail>
                 <Detail icon={Phone} label="Phone">
-                  {l.phone && <a href={`tel:${l.phone}`} className="text-brand-600 hover:text-brand-700">{l.phone}</a>}
+                  {l.phone && <a href={`tel:${l.phone}`} className="text-primary hover:underline">{l.phone}</a>}
                 </Detail>
                 <Detail icon={Tag} label="Source">{l.source}</Detail>
                 <Detail icon={Briefcase} label="Service interest">{l.serviceInterest}</Detail>
@@ -179,46 +189,48 @@ export default function LeadDetailPage() {
         </section>
 
         {/* Follow-ups */}
-        <section className="rounded-xl border border-line bg-white lg:col-span-3" aria-labelledby="fu-h">
-          <div className="flex items-center justify-between border-b border-line px-5 py-4">
-            <h2 id="fu-h" className="text-base font-semibold">Follow-ups</h2>
+        <section aria-labelledby="fu-h">
+          <div className="flex items-center justify-between border-t-2 border-ink pt-4">
+            <h2 id="fu-h" className="text-xl font-bold">Follow-ups</h2>
             <Button size="sm" onClick={() => setShowFollowUp(true)}>
               <CalendarPlus className="size-4" aria-hidden /> Add follow-up
             </Button>
           </div>
 
-          {followUps.error ? (
-            <ErrorState message={followUps.error} onRetry={followUps.reload} />
-          ) : followUps.loading && !followUps.data ? (
-            <Spinner label="Loading follow-ups…" className="py-12" />
-          ) : items.length === 0 ? (
-            <EmptyState
-              icon={CalendarPlus}
-              title="No follow-ups yet"
-              description="Schedule a call, email or meeting so this lead never goes cold."
-              action={<Button onClick={() => setShowFollowUp(true)}><CalendarPlus className="size-4" aria-hidden /> Schedule one</Button>}
-            />
-          ) : (
-            <>
-              {pending.length > 0 && (
-                <ul className="divide-y divide-line">
-                  {pending.map((a) => (
-                    <FollowUpRow key={a._id} activity={a} showLead={false} onComplete={complete} completing={completingId === a._id} />
-                  ))}
-                </ul>
-              )}
-              {completed.length > 0 && (
-                <>
-                  <h3 className="border-y border-line bg-slate-50 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Completed ({completed.length})
-                  </h3>
+          <div className="mt-4 overflow-hidden rounded-3xl border border-line bg-surface">
+            {followUps.error ? (
+              <ErrorState message={followUps.error} onRetry={followUps.reload} />
+            ) : followUps.loading && !followUps.data ? (
+              <Spinner label="Loading follow-ups…" className="py-12" />
+            ) : items.length === 0 ? (
+              <EmptyState
+                icon={CalendarPlus}
+                title="No follow-ups yet"
+                description="Schedule a call, email or meeting so this lead never goes cold."
+                action={<Button onClick={() => setShowFollowUp(true)}><CalendarPlus className="size-4" aria-hidden /> Schedule one</Button>}
+              />
+            ) : (
+              <>
+                {pending.length > 0 && (
                   <ul className="divide-y divide-line">
-                    {completed.map((a) => <FollowUpRow key={a._id} activity={a} showLead={false} />)}
+                    {pending.map((a) => (
+                      <FollowUpRow key={a._id} activity={a} showLead={false} onComplete={complete} completing={completingId === a._id} />
+                    ))}
                   </ul>
-                </>
-              )}
-            </>
-          )}
+                )}
+                {completed.length > 0 && (
+                  <>
+                    <h3 className="border-y border-line bg-sunk px-5 py-2.5 text-[13px] font-semibold text-muted">
+                      Completed ({completed.length})
+                    </h3>
+                    <ul className="divide-y divide-line">
+                      {completed.map((a) => <FollowUpRow key={a._id} activity={a} showLead={false} />)}
+                    </ul>
+                  </>
+                )}
+              </>
+            )}
+          </div>
         </section>
       </div>
 

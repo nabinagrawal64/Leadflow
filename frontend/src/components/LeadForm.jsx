@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { AlertCircle } from 'lucide-react'
 import { parseApiError } from '../lib/api'
 import { SERVICES, SOURCES, STAGES } from '../lib/constants'
 import { EMAIL_RE } from '../lib/format'
 import Button from './ui/Button'
+import Alert from './ui/Alert'
 import { Input, Select } from './ui/Field'
 
 const EMPTY = { name: '', company: '', email: '', phone: '', source: '', serviceInterest: '', budget: '', stage: 'New' }
@@ -81,12 +81,7 @@ export default function LeadForm({ lead, onSubmit, onCancel, submitLabel = 'Save
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      {formError && (
-        <div role="alert" className="mb-5 flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
-          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
-          {formError}
-        </div>
-      )}
+      {formError && <Alert className="mb-5">{formError}</Alert>}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Input label="Full name" required value={values.name} onChange={set('name')} error={errors.name} placeholder="Aarav Sharma" />
@@ -98,7 +93,7 @@ export default function LeadForm({ lead, onSubmit, onCancel, submitLabel = 'Save
         <Input label="Budget (INR)" type="number" min="0" step="any" inputMode="decimal" value={values.budget} onChange={set('budget')} error={errors.budget} placeholder="50000" />
         <Select label="Stage" value={values.stage} onChange={set('stage')} error={errors.stage} options={STAGES} />
       </div>
-      <p className="mt-3 text-xs text-slate-500">At least one of email or phone is required.</p>
+      <p className="mt-3 text-xs text-muted">At least one of email or phone is required.</p>
 
       <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button variant="secondary" onClick={onCancel} disabled={submitting}>Cancel</Button>

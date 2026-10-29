@@ -13,20 +13,32 @@ export const ACTIVITY_STATUSES = ['Pending', 'Completed']
 // Won and Lost leads are closed; everything else is "active".
 export const isActiveStage = (stage) => stage !== 'Won' && stage !== 'Lost'
 
-export const STAGE_STYLES = {
-  New: 'bg-slate-100 text-slate-700 ring-slate-200',
-  Contacted: 'bg-sky-50 text-sky-700 ring-sky-200',
-  Qualified: 'bg-violet-50 text-violet-700 ring-violet-200',
-  'Proposal Sent': 'bg-amber-50 text-amber-800 ring-amber-200',
-  Won: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-  Lost: 'bg-rose-50 text-rose-700 ring-rose-200',
+// One colour per stage. It drives the chevrons, chips and the spectrum strip.
+export const STAGE_COLOR = {
+  New: '#6f78a3',
+  Contacted: '#1c86f2',
+  Qualified: '#6e52f5',
+  'Proposal Sent': '#e8950a',
+  Won: '#0e9f76',
+  Lost: '#e03a48',
 }
 
-export const STAGE_BAR = {
-  New: 'bg-slate-400',
-  Contacted: 'bg-sky-500',
-  Qualified: 'bg-violet-500',
-  'Proposal Sent': 'bg-amber-500',
-  Won: 'bg-emerald-500',
-  Lost: 'bg-rose-500',
+// Text colour that stays readable on a solid stage colour
+export const STAGE_ON_COLOR = {
+  New: '#ffffff',
+  Contacted: '#ffffff',
+  Qualified: '#ffffff',
+  'Proposal Sent': '#101226',
+  Won: '#ffffff',
+  Lost: '#ffffff',
+}
+
+export const stageVars = (stage) => ({ '--c': STAGE_COLOR[stage] || STAGE_COLOR.New })
+
+// Soft, stable avatar tints so people are easy to tell apart in a list
+const AVATAR_TINTS = ['#1c86f2', '#6e52f5', '#0e9f76', '#e8950a', '#e03a48', '#6f78a3']
+export const avatarVars = (name = '') => {
+  let h = 0
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 997
+  return { '--c': AVATAR_TINTS[h % AVATAR_TINTS.length] }
 }

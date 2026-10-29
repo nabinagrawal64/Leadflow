@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { CalendarCheck, LayoutDashboard, LogOut, Menu, Users, X } from 'lucide-react'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { CalendarCheck, LayoutDashboard, LogOut, Users } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../context/AuthContext'
 import { initials } from '../../lib/format'
 import Logo from './Logo'
+import ThemeToggle from './ThemeToggle'
 
 const NAV = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -12,7 +12,7 @@ const NAV = [
   { to: '/follow-ups', label: 'Follow-ups', icon: CalendarCheck },
 ]
 
-function SidebarContent({ onNavigate }) {
+export default function AppLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -22,99 +22,83 @@ function SidebarContent({ onNavigate }) {
   }
 
   return (
-    <div className="flex h-full flex-col bg-ink text-slate-300">
-      <div className="px-5 pb-6 pt-6">
-        <Logo light />
-      </div>
+    <div className="min-h-screen pb-24 md:pb-0">
+      <div className="spectrum h-[3px]" aria-hidden />
 
-      <nav className="flex-1 space-y-1 px-3" aria-label="Main">
+      <header className="sticky top-0 z-30 border-b border-line bg-surface/90 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-10 px-4 sm:px-6 lg:px-8">
+          <Link to="/dashboard" aria-label="LeadFlow home">
+            <Logo />
+          </Link>
+
+          {/* Desktop navigation */}
+          <nav className="hidden h-full items-stretch gap-1 md:flex" aria-label="Main">
+            {NAV.map(({ to, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  clsx(
+                    'relative flex items-center px-3.5 text-sm font-semibold transition-colors duration-150',
+                    isActive
+                      ? 'text-ink after:absolute after:inset-x-3.5 after:-bottom-px after:h-[3px] after:rounded-t-full after:bg-primary'
+                      : 'text-muted hover:text-ink',
+                  )
+                }
+              >
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="ml-auto flex items-center gap-1">
+            <ThemeToggle />
+            <div className="ml-1 hidden items-center gap-2.5 sm:flex">
+              <span
+                className="flex size-9 items-center justify-center rounded-full bg-sunk text-xs font-bold text-ink ring-1 ring-line"
+                aria-hidden
+              >
+                {initials(user?.name)}
+              </span>
+              <span className="max-w-[140px] truncate text-sm font-semibold text-ink">{user?.name}</span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="inline-flex size-10 items-center justify-center rounded-[10px] text-muted transition-colors hover:bg-sunk hover:text-ink"
+              aria-label="Log out"
+              title="Log out"
+            >
+              <LogOut className="size-[18px]" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+        <Outlet />
+      </main>
+
+      {/* Mobile bottom navigation */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+        aria-label="Main"
+      >
         {NAV.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
-            onClick={onNavigate}
             className={({ isActive }) =>
               clsx(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors duration-150',
-                isActive ? 'bg-brand-600 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white',
+                'flex min-h-16 flex-1 flex-col items-center justify-center gap-1 text-xs font-semibold transition-colors',
+                isActive ? 'text-primary' : 'text-muted',
               )
             }
           >
-            <Icon className="size-[18px]" aria-hidden />
+            <Icon className="size-5" aria-hidden />
             {label}
           </NavLink>
         ))}
       </nav>
-
-      <div className="border-t border-white/10 p-3">
-        <div className="flex items-center gap-3 rounded-lg px-2 py-2">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-600/20 text-xs font-bold text-brand-100">
-            {initials(user?.name)}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-white">{user?.name}</p>
-            <p className="truncate text-xs text-slate-400">{user?.email}</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
-            aria-label="Log out"
-            title="Log out"
-          >
-            <LogOut className="size-[18px]" />
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export default function AppLayout() {
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const { pathname } = useLocation()
-
-  // close the mobile drawer on navigation
-  useEffect(() => setDrawerOpen(false), [pathname])
-
-  return (
-    <div className="min-h-screen lg:pl-64">
-      {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 lg:block">
-        <SidebarContent />
-      </aside>
-
-      {/* Mobile top bar */}
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-white px-4 lg:hidden">
-        <Logo />
-        <button
-          onClick={() => setDrawerOpen(true)}
-          className="rounded-lg p-2 text-ink-soft hover:bg-slate-100"
-          aria-label="Open navigation"
-        >
-          <Menu className="size-5" />
-        </button>
-      </header>
-
-      {/* Mobile drawer */}
-      {drawerOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 animate-fade-in bg-slate-900/50" onClick={() => setDrawerOpen(false)} aria-hidden />
-          <aside className="absolute inset-y-0 left-0 w-72 animate-fade-in shadow-xl">
-            <button
-              onClick={() => setDrawerOpen(false)}
-              className="absolute right-3 top-4 z-10 rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white"
-              aria-label="Close navigation"
-            >
-              <X className="size-5" />
-            </button>
-            <SidebarContent onNavigate={() => setDrawerOpen(false)} />
-          </aside>
-        </div>
-      )}
-
-      <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        <Outlet />
-      </main>
     </div>
   )
 }

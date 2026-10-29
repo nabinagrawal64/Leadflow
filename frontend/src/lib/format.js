@@ -46,3 +46,14 @@ export const leadOf = (activity) =>
   activity.leadId && typeof activity.leadId === 'object' ? activity.leadId : activity.lead || null
 export const leadIdOf = (activity) =>
   activity.leadId && typeof activity.leadId === 'object' ? activity.leadId._id : activity.leadId
+
+const timeOnly = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' })
+export const formatTime = (value) => (value ? timeOnly.format(new Date(value)) : '')
+export const monthShort = (value) => new Date(value).toLocaleString(undefined, { month: 'short' })
+export const dayOfMonth = (value) => new Date(value).getDate()
+
+// Time of day for a greeting, based on the viewer's clock
+export const greeting = () => {
+  const h = new Date().getHours()
+  return h < 5 ? 'Still up' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
+}

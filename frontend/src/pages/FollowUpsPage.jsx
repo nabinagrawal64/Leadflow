@@ -55,30 +55,31 @@ export default function FollowUpsPage() {
     <>
       <PageHeader
         title="Follow-ups"
-        description={overdueCount > 0 ? `${overdueCount} overdue — start there.` : 'Everything you have scheduled with your leads.'}
+        description={overdueCount > 0 ? `${overdueCount} overdue. Start with those.` : 'Everything you have scheduled with your leads.'}
         actions={
           <Button onClick={() => setShowModal(true)}><CalendarPlus className="size-4" aria-hidden /> New follow-up</Button>
         }
       />
 
-      <div className="rounded-xl border border-line bg-white">
-        <div className="flex gap-1 border-b border-line p-2" role="tablist" aria-label="Filter follow-ups by status">
-          {TABS.map((t) => (
-            <button
-              key={t.label}
-              role="tab"
-              aria-selected={status === t.value}
-              onClick={() => setParams(t.value ? { status: t.value } : {}, { replace: true })}
-              className={clsx(
-                'rounded-lg px-3.5 py-1.5 text-sm font-semibold transition-colors duration-150',
-                status === t.value ? 'bg-brand-50 text-brand-700' : 'text-ink-soft hover:bg-slate-100',
-              )}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+      {/* Segmented filter */}
+      <div className="mb-4 inline-flex rounded-full bg-sunk p-1 ring-1 ring-line" role="tablist" aria-label="Filter follow-ups by status">
+        {TABS.map((t) => (
+          <button
+            key={t.label}
+            role="tab"
+            aria-selected={status === t.value}
+            onClick={() => setParams(t.value ? { status: t.value } : {}, { replace: true })}
+            className={clsx(
+              'rounded-full px-5 py-2 text-sm font-semibold transition-colors duration-150',
+              status === t.value ? 'bg-surface text-ink shadow-sm ring-1 ring-line' : 'text-muted hover:text-ink',
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
+      <div className="overflow-hidden rounded-3xl border border-line bg-surface">
         {error ? (
           <ErrorState message={error} onRetry={reload} />
         ) : loading && !data ? (

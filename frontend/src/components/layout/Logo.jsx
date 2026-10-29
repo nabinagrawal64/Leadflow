@@ -1,14 +1,22 @@
-export default function Logo({ light = false }) {
+const chevron = (x) => `M${x} 2 L${x + 8} 12 L${x} 22 H${x + 6} L${x + 14} 12 L${x + 6} 2 Z`
+
+export function LogoMark({ className = 'h-6 w-[34px]' }) {
   return (
-    <div className="flex items-center gap-2.5">
-      <svg viewBox="0 0 32 32" className="size-8" aria-hidden>
-        <rect width="32" height="32" rx="8" fill="#2563EB" />
-        <path d="M9 9h4v11h9v3H9z" fill="#fff" />
-        <circle cx="22" cy="11" r="2.5" fill="#34D399" />
-      </svg>
-      <span className={`font-display text-lg font-semibold tracking-tight ${light ? 'text-white' : 'text-ink'}`}>
-        LeadFlow
+    <svg viewBox="0 0 34 24" className={className} aria-hidden>
+      <path d={chevron(0)} fill="#2f9bff" />
+      <path d={chevron(10)} fill="#7b61f5" />
+      <path d={chevron(20)} fill="#12b886" />
+    </svg>
+  )
+}
+
+export default function Logo({ onDark = false }) {
+  return (
+    <span className="flex items-center gap-2.5">
+      <LogoMark />
+      <span className={`font-display text-[22px] font-bold leading-none tracking-tight ${onDark ? 'text-white' : 'text-ink'}`}>
+        leadflow
       </span>
-    </div>
+    </span>
   )
 }

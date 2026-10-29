@@ -1,40 +1,51 @@
 import { Link } from 'react-router-dom'
-import { AlertTriangle, ArrowRight, CalendarClock, CheckCircle2, Plus, TrendingUp, Users } from 'lucide-react'
+import { CalendarClock, ChevronRight, Plus, Users } from 'lucide-react'
 import clsx from 'clsx'
 import { activitiesApi, dashboardApi, leadsApi } from '../lib/api'
 import { useAsync } from '../lib/useAsync'
-import { STAGES, STAGE_BAR } from '../lib/constants'
-import { formatDateTime, isOverdue, leadIdOf, leadOf } from '../lib/format'
+import { STAGES, avatarVars } from '../lib/constants'
+import { formatTime, greeting, initials, isOverdue, leadIdOf, leadOf } from '../lib/format'
 import { useAuth } from '../context/AuthContext'
 import PageHeader from '../components/ui/PageHeader'
 import Button from '../components/ui/Button'
+import { StageBadge } from '../components/ui/Badge'
 import { ErrorState, EmptyState, Skeleton } from '../components/ui/States'
+import { PipelineChevrons } from '../components/StageChevrons'
+import DateTile from '../components/DateTile'
 
-function StatCard({ label, value, icon: Icon, tone, to, loading }) {
-  const tones = {
-    brand: 'bg-brand-50 text-brand-600',
-    sky: 'bg-sky-50 text-sky-600',
-    emerald: 'bg-emerald-50 text-emerald-600',
-    amber: 'bg-amber-50 text-amber-600',
-    rose: 'bg-rose-50 text-rose-600',
-  }
+function Stat({ label, value, to, loading, alert }) {
   return (
-    <Link
-      to={to}
-      className="group rounded-xl border border-line bg-white p-5 transition-colors duration-150 hover:border-brand-500"
-    >
-      <div className="flex min-h-10 items-start justify-between gap-2">
-        <span className="pt-1.5 text-sm font-semibold leading-tight text-ink-soft">{label}</span>
-        <span className={clsx('flex size-9 items-center justify-center rounded-lg', tones[tone])}>
-          <Icon className="size-[18px]" aria-hidden />
-        </span>
-      </div>
+    <Link to={to} className="group block px-5 py-5 transition-colors duration-150 hover:bg-sunk sm:px-6">
+      <span className="block text-sm font-semibold text-muted">{label}</span>
       {loading ? (
-        <Skeleton className="mt-3 h-9 w-16" />
+        <Skeleton className="mt-2 h-10 w-14" />
       ) : (
-        <p className="mt-2 font-display text-3xl font-semibold text-ink">{value ?? 0}</p>
+        <span
+          className={clsx(
+            'mt-1 block font-display text-[44px] font-bold leading-none tabular-nums',
+            alert ? 'text-danger' : 'text-ink',
+          )}
+        >
+          {value ?? 0}
+        </span>
       )}
     </Link>
+  )
+}
+
+function Section({ title, to, linkLabel, children }) {
+  return (
+    <section aria-label={title}>
+      <div className="mb-3 flex items-baseline justify-between border-t-2 border-ink pt-4">
+        <h2 className="text-xl font-bold text-ink">{title}</h2>
+        {to && (
+          <Link to={to} className="inline-flex items-center text-sm font-semibold text-primary hover:underline">
+            {linkLabel} <ChevronRight className="size-4" aria-hidden />
+          </Link>
+        )}
+      </div>
+      {children}
+    </section>
   )
 }
 
@@ -46,20 +57,30 @@ export default function DashboardPage() {
 
   const s = summary.data || {}
   const leadList = leads.data || []
-  const upcoming = [...(followUps.data || [])]
-    .sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt))
-    .slice(0, 5)
+  const upcoming = [...(followUps.data || [])].sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt)).slice(0, 5)
+  const latest = [...leadList].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5)
 
-  const stageCounts = STAGES.map((stage) => ({ stage, count: leadList.filter((l) => l.stage === stage).length }))
-  const maxCount = Math.max(1, ...stageCounts.map((x) => x.count))
-
+  const counts = Object.fromEntries(STAGES.map((stage) => [stage, leadList.filter((l) => l.stage === stage).length]))
   const firstName = user?.name?.split(' ')[0] || 'there'
+
+  // A one-line read on the day, built from the saved summary (no invented numbers)
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`
+  const blurb = summary.data
+    ? s.totalLeads === 0
+      ? 'Add your first lead to get the pipeline moving.'
+      : `You have ${plural(s.activeLeads, 'active lead', 'active leads')}` +
+        (s.overdueFollowUps > 0
+          ? ` and ${plural(s.overdueFollowUps, 'overdue follow-up', 'overdue follow-ups')}.`
+          : s.pendingFollowUps > 0
+            ? ` and ${plural(s.pendingFollowUps, 'follow-up', 'follow-ups')} coming up.`
+            : ', and nothing overdue.')
+    : 'Loading your numbers…'
 
   return (
     <>
       <PageHeader
-        title={`Hello, ${firstName}`}
-        description="Here is where your pipeline stands today."
+        title={`${greeting()}, ${firstName}`}
+        description={blurb}
         actions={
           <Link to="/leads/new">
             <Button><Plus className="size-4" aria-hidden /> New lead</Button>
@@ -67,71 +88,49 @@ export default function DashboardPage() {
         }
       />
 
+      {/* Key metrics: one strip, divided by hairlines */}
       {summary.error ? (
-        <div className="rounded-xl border border-line bg-white">
+        <div className="rounded-2xl border border-line bg-surface">
           <ErrorState message={summary.error} onRetry={summary.reload} />
         </div>
       ) : (
-        <section aria-label="Key metrics" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
-          <StatCard loading={summary.loading} label="Total leads" value={s.totalLeads} icon={Users} tone="brand" to="/leads" />
-          <StatCard loading={summary.loading} label="Active leads" value={s.activeLeads} icon={TrendingUp} tone="sky" to="/leads" />
-          <StatCard loading={summary.loading} label="Won" value={s.wonLeads} icon={CheckCircle2} tone="emerald" to="/leads?stage=Won" />
-          <StatCard loading={summary.loading} label="Pending follow-ups" value={s.pendingFollowUps} icon={CalendarClock} tone="amber" to="/follow-ups?status=Pending" />
-          <StatCard loading={summary.loading} label="Overdue" value={s.overdueFollowUps} icon={AlertTriangle} tone="rose" to="/follow-ups?status=Pending" />
+        <section
+          aria-label="Key metrics"
+          className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-3 lg:grid-cols-5 [&>*]:bg-surface [&>*:last-child]:col-span-2 lg:[&>*:last-child]:col-span-1"
+        >
+          <Stat loading={summary.loading} label="Total leads" value={s.totalLeads} to="/leads" />
+          <Stat loading={summary.loading} label="Active leads" value={s.activeLeads} to="/leads" />
+          <Stat loading={summary.loading} label="Won" value={s.wonLeads} to="/leads?stage=Won" />
+          <Stat loading={summary.loading} label="Pending follow-ups" value={s.pendingFollowUps} to="/follow-ups?status=Pending" />
+          <Stat loading={summary.loading} label="Overdue" value={s.overdueFollowUps} to="/follow-ups?status=Pending" alert={s.overdueFollowUps > 0} />
         </section>
       )}
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-5">
-        {/* Pipeline breakdown */}
-        <section className="rounded-xl border border-line bg-white lg:col-span-2" aria-labelledby="pipeline-h">
-          <div className="flex items-center justify-between border-b border-line px-5 py-4">
-            <h2 id="pipeline-h" className="text-base font-semibold">Pipeline</h2>
-            <Link to="/leads" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700">
-              View leads <ArrowRight className="size-4" aria-hidden />
-            </Link>
-          </div>
-          <div className="p-5">
-            {leads.error ? (
-              <ErrorState message={leads.error} onRetry={leads.reload} />
-            ) : leads.loading ? (
-              <div className="space-y-4">{STAGES.map((x) => <Skeleton key={x} className="h-6" />)}</div>
-            ) : leadList.length === 0 ? (
-              <EmptyState icon={Users} title="No leads yet" description="Add your first lead to see your pipeline take shape." />
-            ) : (
-              <ul className="space-y-4">
-                {stageCounts.map(({ stage, count }) => (
-                  <li key={stage}>
-                    <div className="mb-1.5 flex justify-between text-sm">
-                      <Link to={`/leads?stage=${encodeURIComponent(stage)}`} className="font-semibold text-slate-700 hover:text-brand-600">
-                        {stage}
-                      </Link>
-                      <span className="font-semibold tabular-nums text-ink">{count}</span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className={clsx('h-full rounded-full transition-all duration-500', STAGE_BAR[stage])}
-                        style={{ width: `${(count / maxCount) * 100}%` }}
-                      />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </section>
+      {/* Pipeline: the signature element */}
+      <section aria-label="Pipeline" className="mt-6 rounded-3xl border border-line bg-surface p-6 sm:p-8">
+        <div className="mb-6 flex items-baseline justify-between">
+          <h2 className="text-xl font-bold text-ink">Pipeline</h2>
+          <Link to="/leads" className="inline-flex items-center text-sm font-semibold text-primary hover:underline">
+            Open leads <ChevronRight className="size-4" aria-hidden />
+          </Link>
+        </div>
+        {leads.error ? (
+          <ErrorState message={leads.error} onRetry={leads.reload} />
+        ) : leads.loading && !leads.data ? (
+          <Skeleton className="h-24 w-full" />
+        ) : leadList.length === 0 ? (
+          <EmptyState icon={Users} title="No leads yet" description="Add your first lead and watch it move across the pipeline." />
+        ) : (
+          <PipelineChevrons counts={counts} />
+        )}
+      </section>
 
-        {/* Upcoming follow-ups */}
-        <section className="rounded-xl border border-line bg-white lg:col-span-3" aria-labelledby="up-h">
-          <div className="flex items-center justify-between border-b border-line px-5 py-4">
-            <h2 id="up-h" className="text-base font-semibold">Next follow-ups</h2>
-            <Link to="/follow-ups" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700">
-              View all <ArrowRight className="size-4" aria-hidden />
-            </Link>
-          </div>
+      <div className="mt-12 grid gap-12 lg:grid-cols-[1.35fr_1fr]">
+        <Section title="Next follow-ups" to="/follow-ups" linkLabel="All follow-ups">
           {followUps.error ? (
             <ErrorState message={followUps.error} onRetry={followUps.reload} />
-          ) : followUps.loading ? (
-            <div className="space-y-3 p-5">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-12" />)}</div>
+          ) : followUps.loading && !followUps.data ? (
+            <div className="space-y-3 py-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-16" />)}</div>
           ) : upcoming.length === 0 ? (
             <EmptyState icon={CalendarClock} title="You're all caught up" description="No pending follow-ups. Schedule one from any lead." />
           ) : (
@@ -141,24 +140,48 @@ export default function DashboardPage() {
                 const overdue = isOverdue(a)
                 return (
                   <li key={a._id}>
-                    <Link to={`/leads/${leadIdOf(a)}`} className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-slate-50">
-                      <span className={clsx('flex size-9 shrink-0 items-center justify-center rounded-lg', overdue ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600')}>
-                        <CalendarClock className="size-[18px]" aria-hidden />
-                      </span>
+                    <Link
+                      to={`/leads/${leadIdOf(a)}`}
+                      className="-mx-3 flex items-center gap-4 rounded-xl px-3 py-3.5 transition-colors hover:bg-sunk"
+                    >
+                      <DateTile value={a.dueAt} tone={overdue ? 'danger' : 'default'} />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-ink">{a.title}</p>
-                        <p className="truncate text-xs text-ink-soft">{lead?.name || 'Lead'} · {a.type}</p>
+                        <p className="truncate text-[15px] font-semibold text-ink">{a.title}</p>
+                        <p className="truncate text-[13px] text-muted">{lead?.name || 'Lead'}, {a.type.toLowerCase()} at {formatTime(a.dueAt)}</p>
                       </div>
-                      <span className={clsx('shrink-0 text-xs font-semibold', overdue ? 'text-rose-600' : 'text-ink-soft')}>
-                        {overdue ? 'Overdue · ' : ''}{formatDateTime(a.dueAt)}
-                      </span>
+                      {overdue && <span className="shrink-0 text-xs font-bold text-danger">Overdue</span>}
                     </Link>
                   </li>
                 )
               })}
             </ul>
           )}
-        </section>
+        </Section>
+
+        <Section title="Latest leads" to="/leads" linkLabel="All leads">
+          {leads.error ? null : leads.loading && !leads.data ? (
+            <div className="space-y-3 py-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-14" />)}</div>
+          ) : latest.length === 0 ? (
+            <p className="py-8 text-sm text-muted">Leads you add will show up here.</p>
+          ) : (
+            <ul className="divide-y divide-line">
+              {latest.map((l) => (
+                <li key={l._id}>
+                  <Link to={`/leads/${l._id}`} className="-mx-3 flex items-center gap-3.5 rounded-xl px-3 py-3 transition-colors hover:bg-sunk">
+                    <span className="stage-chip flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-bold" style={avatarVars(l.name)}>
+                      {initials(l.name)}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[15px] font-semibold text-ink">{l.name}</span>
+                      <span className="block truncate text-[13px] text-muted">{l.company || l.email || l.phone}</span>
+                    </span>
+                    <StageBadge stage={l.stage} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
       </div>
     </>
   )

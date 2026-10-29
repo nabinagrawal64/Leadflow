@@ -1,6 +1,6 @@
 # Frontend Test Checklist
 
-**What was run:** a scripted Playwright (Chromium) walkthrough of the production build (`npm run build` + `vite preview`) at 1440×900, plus a 390×844 mobile pass.
+**What was run:** a scripted Playwright (Chromium) walkthrough of the production build (`npm run build` + `vite preview`) at 1440×900, plus a 390×844 mobile pass. Run on the redesigned UI (light theme); both themes were also checked by screenshot.
 
 **Important:** the backend does not exist yet. These tests ran against a **throwaway mock of the API contract** (kept outside the repo), so they prove the UI logic and contract handling, **not** the real backend, hashing, JWT verification or MongoDB persistence. "Persistence" below means the session and data survived a browser refresh against the mock only.
 
@@ -33,9 +33,10 @@ Re-run this checklist against the real API once it is built.
 | 23 | Dashboard | Counts after test data | Total 3, Won 1 | 3 and 1 | PASS |
 | 24 | Responsive | 390px viewport | No horizontal scroll | None | PASS |
 | 25 | Auth | Log out | Back to `/login` | Worked | PASS |
-| 26 | Console | No unexpected console errors | None | 2 messages, both explained below | FAIL (environmental) |
+| 26 | Lead detail | Click a stage in the stepper | Lead moves to that stage, toast shown, stage marked pressed | Worked | PASS |
+| 27 | Console | No unexpected console errors | None | 1 message: the 401 from test 3, which is deliberate | FAIL (expected) |
 
-**Row 26 notes:** the two console errors were (a) Google Fonts blocked by the sandbox network (so screenshots used fallback fonts), and (b) the deliberate `401` from test 3. Neither is an application bug, but the row is marked FAIL because the strict check did not pass as written.
+**Row 27 notes:** the only console error is the `401` the browser logs for the wrong-password attempt in test 3. It is not an application bug, but the row is marked FAIL because the strict "no errors at all" check did not pass as written. (Fonts are now bundled, so the earlier font-loading errors are gone.)
 
 ## Not yet tested
 
@@ -43,3 +44,5 @@ Re-run this checklist against the real API once it is built.
 - API error states: 500 and offline/timeout screens were implemented but not triggered in this run.
 - Dashboard "Pending follow-ups" and "Overdue" metrics against real data (the mock computed them, the real API must).
 - Keyboard-only and screen-reader pass, cross-browser (only Chromium used).
+- Row 26 (stage stepper) was checked in a separate scripted run, not in the main 28-check walkthrough.
+- Dark theme was checked by screenshot only, not by automated assertions.

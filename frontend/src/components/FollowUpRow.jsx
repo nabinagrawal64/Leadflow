@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
-import { CalendarClock, CheckCircle2, Mail, Phone, Users } from 'lucide-react'
+import { CalendarClock, CheckCircle2, Clock, Mail, Phone, Users } from 'lucide-react'
 import clsx from 'clsx'
-import { formatDateTime, isOverdue, leadIdOf, leadOf } from '../lib/format'
+import { formatDateTime, formatTime, isOverdue, leadIdOf, leadOf } from '../lib/format'
 import { StatusBadge } from './ui/Badge'
 import Button from './ui/Button'
+import DateTile from './DateTile'
 
 const TYPE_ICON = { Call: Phone, Email: Mail, Meeting: Users, Task: CalendarClock }
 
@@ -14,39 +15,27 @@ export default function FollowUpRow({ activity, showLead = true, onComplete, com
   const lead = leadOf(activity)
 
   return (
-    <li className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-4">
-      <div className="flex min-w-0 flex-1 items-start gap-3.5">
-        <span
-          className={clsx(
-            'flex size-10 shrink-0 items-center justify-center rounded-lg',
-            done ? 'bg-emerald-50 text-emerald-600' : overdue ? 'bg-rose-50 text-rose-600' : 'bg-brand-50 text-brand-600',
-          )}
-        >
-          {done ? <CheckCircle2 className="size-5" aria-hidden /> : <Icon className="size-5" aria-hidden />}
-        </span>
+    <li className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-5">
+      <div className="flex min-w-0 flex-1 items-center gap-4">
+        <DateTile value={activity.dueAt} tone={done ? 'done' : overdue ? 'danger' : 'default'} />
         <div className="min-w-0">
-          <p className={clsx('truncate text-sm font-semibold', done ? 'text-slate-500 line-through' : 'text-ink')}>
+          <p className={clsx('truncate text-[15px] font-semibold', done ? 'text-faint line-through' : 'text-ink')}>
             {activity.title}
           </p>
-          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-ink-soft">
+          <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-muted">
             {showLead && (
-              <>
-                <Link to={`/leads/${leadIdOf(activity)}`} className="font-semibold text-brand-600 hover:text-brand-700">
-                  {lead?.name || 'View lead'}
-                </Link>
-                <span aria-hidden>·</span>
-              </>
+              <Link to={`/leads/${leadIdOf(activity)}`} className="font-semibold text-primary hover:underline">
+                {lead?.name || 'View lead'}
+              </Link>
             )}
-            <span>{activity.type}</span>
-            <span aria-hidden>·</span>
-            <span className={clsx(overdue && 'font-semibold text-rose-600')}>Due {formatDateTime(activity.dueAt)}</span>
-            {done && activity.completedAt && (
-              <>
-                <span aria-hidden>·</span>
-                <span>Done {formatDateTime(activity.completedAt)}</span>
-              </>
-            )}
-          </p>
+            <span className="inline-flex items-center gap-1.5">
+              <Icon className="size-3.5" aria-hidden /> {activity.type}
+            </span>
+            <span className={clsx('inline-flex items-center gap-1.5', overdue && 'font-semibold text-danger')}>
+              <Clock className="size-3.5" aria-hidden /> {formatTime(activity.dueAt)}
+            </span>
+            {done && activity.completedAt && <span>Done {formatDateTime(activity.completedAt)}</span>}
+          </div>
         </div>
       </div>
 
@@ -54,7 +43,7 @@ export default function FollowUpRow({ activity, showLead = true, onComplete, com
         <StatusBadge status={activity.status} overdue={overdue} />
         {!done && (
           <Button size="sm" variant="secondary" loading={completing} onClick={() => onComplete(activity)}>
-            <CheckCircle2 className="size-4 text-emerald-600" aria-hidden />
+            <CheckCircle2 className="size-4 text-success" aria-hidden />
             Mark complete
           </Button>
         )}

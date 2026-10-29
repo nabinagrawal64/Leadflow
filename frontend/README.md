@@ -11,8 +11,8 @@ React + Vite single-page app for the VyorAI SDE intern assignment. It talks to t
 | Build / framework | React 19 + Vite |
 | Routing | React Router (protected + public-only routes) |
 | HTTP | Axios (one instance, token interceptor, 401 handler) |
-| Styling | Tailwind CSS v4, flat design system (blue `#2563EB`, emerald accent, slate neutrals) |
-| Type | Poppins (headings) + Open Sans (body) |
+| Styling | Tailwind CSS v4 with CSS-variable design tokens; light and dark themes (toggle in the header, follows the OS by default, remembered per browser) |
+| Type | Bricolage Grotesque (headings) + Instrument Sans (body), self-hosted via `@fontsource`, so no external font requests |
 | Icons | lucide-react |
 
 ## Prerequisites
@@ -55,19 +55,23 @@ Only non-secret values belong in `VITE_*` variables — they are bundled into th
 | `/dashboard` | Dashboard | Metric cards from `GET /dashboard/summary`, pipeline breakdown from real leads, next pending follow-ups, links to Leads |
 | `/leads` | Leads | Debounced search (name/company), stage filter, inline stage dropdown, edit/delete with confirm, empty/loading/error states. Search and filter live in the URL |
 | `/leads/new` | New lead | Validated create form |
-| `/leads/:id` | Lead details | View/edit (`?edit=1`), stage change, delete, add follow-up, complete follow-up |
+| `/leads/:id` | Lead details | View/edit (`?edit=1`), stage stepper, delete, add follow-up, complete follow-up |
 | `/follow-ups` | Follow-ups | All / Pending / Completed tabs, lead link, due date, overdue flag, mark complete, schedule new |
+
+## Design
+
+The look is built around the pipeline itself. Each of the six stages has one colour, used consistently for the dashboard chevrons, the stage chips, the header strip and the login artwork. On a lead's page the same chevrons become the stage control: click a stage to move the lead (saved immediately). Follow-ups use calendar-style date tiles so the due day is the first thing you see, and overdue items turn red. On phones the top navigation becomes a bottom tab bar.
 
 ## Architecture
 
 ```
 src/
   lib/          api.js (axios + endpoints + error parsing), constants, format helpers, useAsync
-  context/      AuthContext (session + token), ToastContext
+  context/      AuthContext (session + token), ToastContext, ThemeContext
   components/
-    ui/         Button, Field (Input/Select), Badge, Modal, ConfirmDialog, States (loading/empty/error)
-    layout/     AppLayout (sidebar/drawer), RouteGuards, Logo
-    LeadForm, FollowUpModal, FollowUpRow
+    ui/         Button, Field (Input/Select), Badge, Alert, Modal, ConfirmDialog, States (loading/empty/error)
+    layout/     AppLayout (top nav, mobile tab bar), RouteGuards, Logo, ThemeToggle
+    LeadForm, FollowUpModal, FollowUpRow, DateTile, StageChevrons
   pages/        AuthPage, DashboardPage, LeadsPage, LeadDetailPage (+ NewLeadPage), FollowUpsPage, NotFoundPage
 ```
 

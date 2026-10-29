@@ -1,53 +1,141 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Poppins", "Open Sans", ui-sans-serif, system-ui, sans-serif;
+/*
+  Design tokens. Colours are CSS variables so the same utilities (bg-surface, text-muted…)
+  re-skin between the light and dark themes without per-component overrides.
+  Light: cool "fog" canvas, indigo ink, ultramarine primary.
+*/
+:root {
+  --canvas: #edeff6;
+  --surface: #ffffff;
+  --sunk: #f3f4fa;
+  --ink: #101226;
+  --muted: #565b7e;
+  --faint: #8a8fae;
+  --line: #dadded;
+  --primary: #2f37f2;
+  --primary-hover: #2229d6;
+  --on-primary: #ffffff;
+  --danger: #d4303d;
+  --on-danger: #ffffff;
+  --success: #0b8a66;
+  --chip-mix: #000;
+  --panel-art: #14163a;
+  color-scheme: light;
+}
 
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-500: #3b82f6;
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
+[data-theme="dark"] {
+  --canvas: #0c0e1d;
+  --surface: #14172b;
+  --sunk: #1b1f38;
+  --ink: #eceeff;
+  --muted: #a0a6c8;
+  --faint: #6f76a0;
+  --line: #262b4a;
+  --primary: #7c84ff;
+  --primary-hover: #959bff;
+  --on-primary: #0c0e1d;
+  --danger: #ff6b77;
+  --on-danger: #0c0e1d;
+  --success: #35d3a1;
+  --chip-mix: #fff;
+  --panel-art: #0a0c1b;
+  color-scheme: dark;
+}
 
-  --color-ink: #0f172a;
-  --color-ink-soft: #475569;
-  --color-line: #e2e8f0;
-  --color-surface: #f8fafc;
+@theme inline {
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-sunk: var(--sunk);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-danger: var(--danger);
+  --color-on-danger: var(--on-danger);
+  --color-success: var(--success);
+  --color-panel-art: var(--panel-art);
 
   --animate-fade-in: fade-in 160ms ease-out;
   --animate-pop: pop 180ms ease-out;
 }
 
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes pop {
-  from { opacity: 0; transform: translateY(6px) scale(0.98); }
-  to { opacity: 1; transform: none; }
-}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: none; } }
 
 html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  background: var(--color-surface);
-  color: var(--color-ink);
+  background: var(--canvas);
+  color: var(--ink);
   font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  font-variation-settings: "opsz" 48;
+}
 
-button, [role="button"], select, summary, a { cursor: pointer; }
+button, [role="button"], [role="tab"], select, summary, a { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
 
 :focus-visible {
-  outline: 2px solid var(--color-brand-600);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
   border-radius: 6px;
 }
+
+/* The spectrum strip mirrors the pipeline: one colour per stage, left to right. */
+.spectrum {
+  background: linear-gradient(90deg, #6f78a3 0 16.66%, #1c86f2 16.66% 33.33%, #6e52f5 33.33% 50%, #e8950a 50% 66.66%, #0e9f76 66.66% 83.33%, #e03a48 83.33% 100%);
+}
+
+/* Stage chips: tint and text are derived from a single --c, so they work in both themes. */
+.stage-chip {
+  background: color-mix(in srgb, var(--c) 16%, transparent);
+  color: color-mix(in srgb, var(--c) 58%, var(--chip-mix));
+}
+
+.tint-danger {
+  background: color-mix(in srgb, var(--danger) 11%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 28%, transparent);
+  color: var(--danger);
+}
+
+/* ---- Pipeline chevrons (the signature element) ---- */
+.chev-slot { --n: 16px; display: block; min-width: 0; flex: 1 1 0; margin-left: calc(var(--n) * -1 + 5px); }
+.chev-slot:first-child { margin-left: 0; }
+.chev {
+  display: flex; align-items: center; justify-content: center;
+  height: 64px; padding-inline: var(--n);
+  clip-path: polygon(0 0, calc(100% - var(--n)) 0, 100% 50%, calc(100% - var(--n)) 100%, 0 100%, var(--n) 50%);
+  transition: filter 150ms ease, background-color 150ms ease;
+}
+.chev[data-pos="first"] {
+  padding-left: 12px; border-radius: 14px 0 0 14px;
+  clip-path: polygon(0 0, calc(100% - var(--n)) 0, 100% 50%, calc(100% - var(--n)) 100%, 0 100%);
+}
+.chev[data-pos="last"] {
+  padding-right: 12px; border-radius: 0 14px 14px 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, var(--n) 50%);
+}
+.chev[data-pos="only"] { border-radius: 14px; clip-path: none; }
+a.chev-slot:hover .chev, button.chev-slot:not(:disabled):hover .chev { filter: brightness(1.08); }
+
+/* One orchestrated moment: the login artwork builds its pipeline stage by stage. */
+@keyframes chev-in { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+.chev-build { animation: chev-in 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -2,23 +2,23 @@ import { forwardRef, useId } from 'react'
 import clsx from 'clsx'
 
 const control =
-  'block w-full rounded-lg border bg-white px-3 text-sm text-ink placeholder:text-slate-400 transition-colors duration-150 ' +
-  'focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20 disabled:bg-slate-50 disabled:text-slate-500'
+  'block w-full rounded-[10px] border bg-surface px-3.5 text-sm text-ink placeholder:text-faint transition-colors duration-150 ' +
+  'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:bg-sunk disabled:text-faint'
 
 export function Field({ label, error, hint, required, children, htmlFor, className }) {
   return (
     <div className={className}>
       {label && (
-        <label htmlFor={htmlFor} className="mb-1.5 block text-[13px] font-semibold text-slate-700">
+        <label htmlFor={htmlFor} className="mb-1.5 block text-[13px] font-semibold text-ink">
           {label}
-          {required && <span className="ml-0.5 text-rose-600" aria-hidden>*</span>}
+          {required && <span className="ml-0.5 text-danger" aria-hidden>*</span>}
         </label>
       )}
       {children}
       {error ? (
-        <p className="mt-1.5 text-xs font-medium text-rose-600" role="alert">{error}</p>
+        <p className="mt-1.5 text-xs font-medium text-danger" role="alert">{error}</p>
       ) : hint ? (
-        <p className="mt-1.5 text-xs text-slate-500">{hint}</p>
+        <p className="mt-1.5 text-xs text-muted">{hint}</p>
       ) : null}
     </div>
   )
@@ -33,7 +33,7 @@ export const Input = forwardRef(function Input({ label, error, hint, required, c
         ref={ref}
         id={inputId}
         aria-invalid={Boolean(error)}
-        className={clsx(control, 'h-10', error ? 'border-rose-400' : 'border-line')}
+        className={clsx(control, 'h-11', error ? 'border-danger' : 'border-line')}
         {...props}
       />
     </Field>
@@ -52,7 +52,7 @@ export const Select = forwardRef(function Select(
         ref={ref}
         id={selectId}
         aria-invalid={Boolean(error)}
-        className={clsx(control, 'h-10 pr-8', error ? 'border-rose-400' : 'border-line', inputClassName)}
+        className={clsx(control, 'h-11 pr-8', error ? 'border-danger' : 'border-line', inputClassName)}
         {...props}
       >
         {placeholder && <option value="">{placeholder}</option>}

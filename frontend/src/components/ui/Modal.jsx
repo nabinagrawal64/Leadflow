@@ -25,33 +25,33 @@ export default function Modal({ open, onClose, title, description, children, foo
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
-      <div className="absolute inset-0 animate-fade-in bg-slate-900/50" onClick={onClose} aria-hidden />
+      <div className="absolute inset-0 animate-fade-in bg-[#080a1a]/60 backdrop-blur-[2px]" onClick={onClose} aria-hidden />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label={title}
         className={clsx(
-          'relative flex max-h-[92vh] w-full animate-pop flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl',
+          'relative flex max-h-[92vh] w-full animate-pop flex-col rounded-t-3xl border border-line bg-surface shadow-[0_24px_60px_-12px_rgba(8,10,40,0.45)] sm:rounded-3xl',
           size === 'sm' ? 'sm:max-w-md' : 'sm:max-w-lg',
         )}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
+        <header className="flex items-start justify-between gap-4 px-6 pb-2 pt-6">
           <div>
-            <h2 className="text-base font-semibold text-ink">{title}</h2>
-            {description && <p className="mt-0.5 text-sm text-ink-soft">{description}</p>}
+            <h2 className="text-xl font-bold text-ink">{title}</h2>
+            {description && <p className="mt-1 text-sm text-muted">{description}</p>}
           </div>
           <button
             data-close
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+            className="-mr-2 -mt-1 rounded-[10px] p-2 text-faint transition-colors hover:bg-sunk hover:text-ink"
             aria-label="Close dialog"
           >
             <X className="size-5" />
           </button>
         </header>
-        <div className="overflow-y-auto px-5 py-4">{children}</div>
-        {footer && <footer className="flex justify-end gap-2 border-t border-line px-5 py-3.5">{footer}</footer>}
+        <div className="overflow-y-auto px-6 py-4">{children}</div>
+        {footer && <footer className="flex justify-end gap-2 px-6 pb-6 pt-2">{footer}</footer>}
       </div>
     </div>
   )

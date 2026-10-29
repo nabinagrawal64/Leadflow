@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { AlertCircle } from 'lucide-react'
 import { activitiesApi, leadsApi, parseApiError } from '../lib/api'
 import { ACTIVITY_TYPES } from '../lib/constants'
 import { toLocalInput } from '../lib/format'
 import { useToast } from '../context/ToastContext'
 import Modal from './ui/Modal'
 import Button from './ui/Button'
+import Alert from './ui/Alert'
 import { Input, Select } from './ui/Field'
 
 /**
@@ -89,12 +89,7 @@ export default function FollowUpModal({ open, onClose, onCreated, leadId }) {
       }
     >
       <form id="followup-form" onSubmit={submit} noValidate className="space-y-4">
-        {formError && (
-          <div role="alert" className="flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
-            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
-            {formError}
-          </div>
-        )}
+        {formError && <Alert>{formError}</Alert>}
         {!leadId && (
           <Select
             label="Lead"
