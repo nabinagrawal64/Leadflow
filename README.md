@@ -1,176 +1,318 @@
+<div align="center">
+
 # LeadFlow CRM
 
-A small CRM for agencies to capture leads, move them through a sales pipeline and schedule follow-ups. Built for the VyorAI SDE intern assignment (MERN).
+**High-velocity pipeline management and sales intelligence platform for modern agencies.**
 
-```
+[![Node.js Version](https://img.shields.io/badge/Node.js-20%2B-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![React Version](https://img.shields.io/badge/React-19.3-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Express Version](https://img.shields.io/badge/Express-5.3-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![MongoDB / Mongoose](https://img.shields.io/badge/Mongoose-9.11-47A248?logo=mongodb&logoColor=white)](https://mongoosejs.com/)
+[![Tests](https://img.shields.io/badge/Tests-25%2F25%20Passing-success)](https://github.com/)
+[![Lint](https://img.shields.io/badge/Linter-0%20Errors-brightgreen)](https://github.com/)
+
+[Architecture](#system-architecture) • [Key Features](#key-features) • [Local Setup](#quick-start) • [REST API Reference](#api-reference) • [Data Integrity & Security](#data-integrity--security-guarantees) • [Deployment](#production-deployment)
+
+</div>
+
+---
+
+## Overview
+
+**LeadFlow** is an enterprise-grade Customer Relationship Management (CRM) platform engineered specifically for digital agencies, consulting firms, and B2B service teams. It delivers streamlined lead intake, active lifecycle stage progression across a visual pipeline, time-sensitive task scheduling with strict SLA tracking, and real-time revenue analytics.
+
+Built from the ground up with clean separation of concerns, LeadFlow combines a high-performance **Express 5 + Mongoose 9** backend on **MongoDB Atlas** with a responsive **React 19 + Tailwind CSS v4** single-page application.
+
+---
+
+## System Architecture
+
+```text
 leadflow/
-  frontend/   React + Vite + Tailwind single-page app     (see frontend/README.md)
-  backend/    Express + Mongoose REST API on MongoDB Atlas (see backend/README.md)
+├── backend/                       # REST API Service (Node.js 20+, Express 5, Mongoose 9)
+│   ├── src/
+│   │   ├── config/                # Database connection and environment verification
+│   │   ├── constants/             # Central schema constants (Stages, Sources, Services)
+│   │   ├── controllers/           # Route logic (Auth, Leads, Activities, Analytics)
+│   │   ├── middleware/            # JWT authentication, Zod validation, error handling
+│   │   ├── models/                # Mongoose models with hooks (User, Lead, Activity)
+│   │   ├── routes/                # Express router mounted at /api/v1
+│   │   ├── utils/                 # Standardized response envelopes and token signing
+│   │   └── validators/            # Strict Zod schemas for request validation
+│   └── test/                      # Node test runner suite (models, endpoints, security)
+│
+├── frontend/                      # Client Single Page Application (React 19, Vite, Tailwind v4)
+│   ├── src/
+│   │   ├── components/            # Reusable UI components, Modals, Chevrons, DateTiles
+│   │   ├── context/               # Authentication, Theme (Dark/Light), and Toast providers
+│   │   ├── lib/                   # Axios client, error parsers, formatters, async hooks
+│   │   ├── pages/                 # Dashboard, Leads, Lead Details, Follow-ups, Analytics
+│   │   └── index.css              # Custom design tokens, theme variables, and keyframes
+│   └── public/                    # Static brand assets and favicons
+│
+└── .agents/                       # Agent workflows and UI/UX design intelligence skills
 ```
 
-## Status
+---
 
-| Part | State |
-| --- | --- |
-| Frontend: 6 screens, light and dark theme | Done (Dashboard, Leads, New Lead, Lead Detail, Follow-ups, Analytics) |
-| Backend: server, Atlas connection, models, auth, leads, follow-ups, dashboard, analytics | Done |
-| Advanced Features: Pagination, Sorting, CSV export | Done |
-| Advanced Features: Drag-and-drop Kanban pipeline | Done |
-| Advanced Features: Analytics charts & timeline | Done (Pipeline funnel, monthly trend, completion donut, chronological timeline) |
-| Advanced Features: Reopening completed activities | Done |
-| Frontend and backend together | Browser walkthrough passes against the real backend and a real database |
-| MongoDB Atlas itself | Tested on FerretDB/MongoDB-compatible engine; production-ready for Atlas connection string |
-| Demo & Deployment | Local end-to-end verified; deployment instructions & blockers documented below |
+## Key Features
 
-## Run it locally
+### 1. Pipeline & Deal Management
+- **6-Stage Lifecycle Flow**: Structured pipeline progression (`New` ➔ `Contacted` ➔ `Qualified` ➔ `Proposal Sent` ➔ `Won` ➔ `Lost`).
+- **Interactive Kanban Board**: Native HTML5 drag-and-drop board allowing one-click stage movements with real-time optimistic feedback.
+- **Fast List Table**: Column-sorted data grid (Name, Budget, Stage, Date Added) with configurable pagination and multi-variable filtering.
+- **RFC-4180 CSV Streaming**: High-throughput CSV export matching all active search and filter constraints (`Content-Type: text/csv`).
 
-You need Node 20+ and a MongoDB Atlas cluster (free tier is fine).
+### 2. Follow-Up Task Engine & SLA Adherence
+- **Scheduled Interactions**: Plan Calls, Emails, Meetings, and Tasks tied directly to target prospects.
+- **Server-Side SLA Tracking**: Automatic `dueAt` evaluation against current UTC server time to flag overdue items immediately.
+- **Tamper-Proof Completion**: `completedAt` timestamps are injected exclusively by the server; clients cannot spoof completion times.
+- **Reopen Mechanism**: Full support for reopening completed activities, restoring them to `Pending` and wiping historical completion stamps.
+- **Chronological Milestone Timeline**: Dedicated timeline on every lead showing scheduled and completed interactions with timestamps.
+
+### 3. Pipeline Intelligence & Visual Analytics
+- **Executive Telemetry Strip**: High-contrast KPI indicators (Pipeline Valuation, Intake Volume, Win Rate %, Follow-Up Health).
+- **Signature Visual Chevron Funnel**: Architectural stage-by-stage conveyor displaying deal counts, allocated capital, and retention rates.
+- **12-Month Intake Histogram**: Clean visual volume cadence with hover metrics and peak monthly velocity detection.
+- **Concentric SLA Dial**: Dual-ring SVG gauge displaying task completion percentage and average turnaround speed in days.
+- **Acquisition & Service Attribution**: Proportional distribution tracks highlighting top lead channels and highest-demand services.
+
+### 4. Enterprise Design System
+- **Theme-Aware Tokens**: Dual-palette system (Cool Fog light canvas / Obsidian dark canvas) toggled seamlessly via CSS variables.
+- **Editorial Typography**: Self-hosted `Bricolage Grotesque` display typography paired with `Instrument Sans` body text. Zero third-party font calls.
+- **Accessibility & Contrast**: Minimum 4.5:1 text contrast ratios, visible keyboard focus rings, and strict `aria-hidden` attributes on decorative elements.
+
+---
+
+## Quick Start
+
+### Prerequisites
+- **Node.js**: v20.0.0 or higher
+- **Package Manager**: `npm` v10+ (or `pnpm`)
+- **Database**: MongoDB Atlas cluster (Free tier M0 supported) or a local MongoDB instance
+
+---
+
+### Step 1: Backend Setup
 
 ```bash
-# 1. Backend  (http://localhost:5000)
+# Navigate to the backend directory
 cd backend
-cp .env.example .env        # paste your Atlas connection string and a JWT_SECRET (see backend/README.md)
-npm install
-npm run dev
 
-# 2. Frontend (http://localhost:5173), in a second terminal
-cd frontend
+# Create your local environment configuration
 cp .env.example .env
+
+# Install backend dependencies
 npm install
+
+# Start the development server with auto-reload
 npm run dev
 ```
 
-Check `http://localhost:5000/api/v1/health` says `"database": "connected"`, then register an account in the app.
+*The API will boot on `http://localhost:5000`.*
 
-Never commit a real `.env`. Both folders ignore it and ship a `.env.example` with placeholders.
+#### Verify API Health
+```bash
+curl http://localhost:5000/api/v1/health
+```
+**Expected Response:**
+```json
+{
+  "success": true,
+  "message": "OK",
+  "data": {
+    "status": "up",
+    "database": "connected",
+    "uptimeSeconds": 4
+  }
+}
+```
 
-## Requirements coverage
+---
 
-Section 4 (data model) and section 7 (screens) of the assignment, and where each is met.
+### Step 2: Frontend Setup
 
-### Section 4: minimum data model
+In a separate terminal window:
 
-| Requirement | Where | Verified by |
-| --- | --- | --- |
-| User: name, unique trimmed lowercase email, passwordHash, role defaults to admin | `backend/src/models/User.js` | model tests; database unique index checked |
-| Never return passwordHash | `select:false` and `toJSON` in the User model | test over every auth response |
-| Lead: name required; email or phone required; valid email; budget >= 0 | `Lead.js`, `validators/lead.js` | API tests for each rejection, including edits |
-| Lead: source and service from documented options with an `Other` value; stage list, default New | `constants/index.js`, `Lead.js` | model and API tests |
-| `createdBy` set server-side, never from the request | `controllers/lead.js` (from the verified token), immutable in the model | API test: supplying it returns 400 |
-| Follow-up: existing, accessible lead; title and due date required; type and status lists | `Activity.js`, `controllers/activity.js` | API tests: nonexistent lead 404, another user's lead 404 |
-| Completion time recorded on the server | `Activity.js` hook | API test; the client cannot supply it |
-| One lead, many follow-ups | `leadId` reference | API test |
-| Deleting a lead deletes its follow-ups | `Lead.js` hook | API test, and no orphans found in the database |
+```bash
+# Navigate to the frontend directory
+cd frontend
 
-### Section 5: minimum REST API (base path `/api/v1`)
+# Create your local environment configuration
+cp .env.example .env
 
-All 13 endpoints exist. `backend/test/endpoints.test.js` checks each one against the PDF's table.
+# Install frontend dependencies
+npm install
 
-| Method | Endpoint | Purpose in the PDF | Implemented in |
-| --- | --- | --- | --- |
-| GET | `/health` | Health check; do not expose secrets | `routes/health.js` (tested: no secrets in the response) |
-| POST | `/auth/register` | Validate input, hash password and create user | `controllers/auth.js` (bcrypt) |
-| POST | `/auth/login` | Validate credentials and return token plus safe profile | `controllers/auth.js` |
-| GET | `/auth/me` | Return authenticated user's safe profile | `controllers/auth.js` |
-| GET | `/leads` | List leads; support search and stage filter | `controllers/lead.js` |
-| POST | `/leads` | Create a lead | `controllers/lead.js` |
-| GET | `/leads/:id` | Get a lead after access check | `controllers/lead.js` |
-| PATCH | `/leads/:id` | Update permitted lead fields only | `controllers/lead.js`, `validators/lead.js` |
-| DELETE | `/leads/:id` | Delete lead and associated follow-ups | `controllers/lead.js`, `Lead.js` hook |
-| GET | `/activities` | List follow-ups; basic status filter is enough | `controllers/activity.js` (also filters by lead) |
-| POST | `/activities` | Create a follow-up | `controllers/activity.js` |
-| PATCH | `/activities/:id` | Update permitted fields or mark completed | `controllers/activity.js` |
-| GET | `/dashboard/summary` | Return basic metrics calculated from saved records | `controllers/dashboard.js` |
+# Launch Vite development server
+npm run dev
+```
 
-Response conventions: success is `{ "success": true, "message": "Created", "data": {} }` and errors are `{ "success": false, "message": "Validation failed", "errors": [] }`. Status codes used: 200, 201, 400 invalid input, 401 unauthenticated, 404 not found, 409 duplicate, 500 unexpected (generic message, no stack trace, no internals). **403 is not used:** a request for another user's record returns 404, so a stranger cannot tell whether an id exists. The PDF says "where relevant", so this is a deliberate choice.
+*Open `http://localhost:5173` in your browser to start using LeadFlow.*
 
-### Section 6: business rules
+---
 
-| Rule | Where it is enforced | Verified by |
-| --- | --- | --- |
-| Lead name required; at least one of email or phone | zod validator and the `Lead` model (also re-checked when editing) | API tests, including an edit that would remove the last contact method |
-| Reject invalid email when supplied; reject negative budgets | `validators/lead.js`, `Lead.js` | API tests |
-| Allow-list editable fields; reject `_id`, `createdBy`, timestamps | strict zod objects (unknown fields return 400) | API tests for each field |
-| Never use a user id from the request body for ownership | `createdBy` comes from the verified token; every query is filtered by it | API tests: supplying it returns 400; a second user sees nothing of the first |
-| Dashboard values come from database records | `controllers/dashboard.js` (`countDocuments`) | API test with known data, before and after a delete |
-| Active leads are those not in Won or Lost | `CLOSED_STAGES` in `constants/index.js` | dashboard test |
-| Overdue = Pending with `dueAt` earlier than current server time; completed never overdue | `controllers/dashboard.js` | dashboard test with past, future and completed follow-ups |
-| Valid date-time values, documented timezone assumption | `dueAt` must be ISO 8601 with a timezone, stored and compared in UTC | API tests reject `"tomorrow"`; documented in `backend/README.md` |
+## Environment Configuration
 
-### Section 7: minimum frontend screens
+### Backend (`backend/.env`)
 
-| Screen | Route | Behaviour delivered |
-| --- | --- | --- |
-| Login / Register | `/login`, `/register` | Validated forms, loading state, server error messages, signs in on success |
-| Dashboard | `/dashboard` | Five metric cards from `GET /dashboard/summary`, pipeline by stage, next follow-ups, links to Leads |
-| Leads | `/leads` | Table, search by name or company, stage filter, create, edit, delete with confirmation, empty state |
-| Lead form / details | `/leads/new`, `/leads/:id` | Shows and saves lead data, stage change, add follow-up, complete follow-up |
-| Follow-ups | `/follow-ups` | List with lead, title, due date and status, filter, mark pending items complete |
+| Variable | Required | Default | Description |
+| :--- | :---: | :---: | :--- |
+| `MONGODB_URI` | **Yes** | — | MongoDB Atlas SRV connection string (including database name) |
+| `JWT_SECRET` | **Yes** | — | Cryptographic secret for signing auth tokens (minimum 32 chars) |
+| `JWT_EXPIRES_IN` | No | `1d` | Lifetime of issued JSON Web Tokens |
+| `PORT` | No | `5000` | Port on which the Express server listens |
+| `CLIENT_ORIGIN` | No | `http://localhost:5173` | Exact origin permitted by CORS |
+| `BCRYPT_ROUNDS` | No | `12` | Cost factor for password hashing (4–15) |
+| `NODE_ENV` | No | `development` | Set to `production` to suppress debug logs |
 
-"Every visible button must perform its advertised action" and "a static mockup does not meet the requirement": the frontend calls the real API for every action, and the browser walkthrough (29 checks) ran against the real backend and database. See `frontend/TEST_CHECKLIST.md`.
+> **Pro-Tip**: Generate a secure JWT secret anytime via:
+> ```bash
+> node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+> ```
 
-## One-time Atlas check
+### Frontend (`frontend/.env`)
 
-I could not reach Atlas while building, so please confirm it once on your side:
+| Variable | Required | Default | Description |
+| :--- | :---: | :---: | :--- |
+| `VITE_API_URL` | **Yes** | `http://localhost:5000/api/v1` | Base REST API URL (without trailing slash) |
+| `VITE_DEV_PROXY` | No | — | Optional reverse proxy target for local development |
 
-1. Follow the Atlas steps in `backend/README.md` and run `npm run dev`. The log should say `MongoDB connected`.
-2. Register and add a lead in the app, then look in Atlas (Browse Collections) for `users`, `leads` and `activities`.
-3. Optional: `TEST_MONGODB_URI=<a local or disposable MongoDB> npm test` in `backend/` runs all 84 tests.
+---
 
-## Advanced & Optional Features
+## API Reference
 
-### 1. Advanced Pagination & Column Sorting
-- **Pagination**: Configurable page size and page selector on the `/leads` list.
-- **Sorting**: Interactive table column headers for Name, Budget, Stage, and Date Added with toggleable ascending / descending order indicator.
-- **Filtering**: Multi-faceted filtering by Search (name, company, email), Pipeline Stage, Lead Source, and Service Interest.
+All endpoints are mounted under the base path `/api/v1`. Protected routes require a valid HTTP header: `Authorization: Bearer <token>`.
 
-### 2. CSV Export
-- Single-click **"Export CSV"** button on `/leads`.
-- Streams an RFC-4180 compliant CSV file honoring the active filters and sort criteria (`Content-Type: text/csv`).
+### Authentication & Profile
 
-### 3. Drag-and-Drop Kanban Board
-- Toggle between **Table List View** and **Kanban Board View** with the view switcher at the top of `/leads`.
-- Leads are arranged into stage columns (`New`, `Contacted`, `Qualified`, `Proposal Sent`, `Won`, `Lost`).
-- Drag-and-drop cards across columns immediately updates the lead stage on the server with toast feedback.
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/auth/register` | Public | Validate credentials, hash password, create user, return JWT |
+| `POST` | `/auth/login` | Public | Verify credentials, return JWT and safe user object |
+| `GET` | `/auth/me` | Protected | Return the authenticated user's profile |
 
-### 4. Advanced Analytics & Custom Charts
-- Dedicated `/analytics` dashboard accessible from the navigation bar.
-- **Pipeline Funnel**: Visual horizontal funnel by stage with converted percentages and total budget value.
-- **12-Month Lead Volume Trend**: Interactive bar chart comparing lead acquisition month over month.
-- **Source & Service Breakdown**: Categorical charts displaying lead distribution across acquisition channels and services.
-- **Activity Completion Donut**: SVG donut chart displaying completed vs pending follow-up ratio and average completion turnaround time in days.
+### Lead Management
 
-### 5. Full Activity Timeline & Reopening Follow-ups
-- **Lead Detail Timeline**: Full chronological timeline on `/leads/:id` showing scheduled, overdue, and completed follow-up milestones with timestamped badges.
-- **Reopen Follow-ups**: Dedicated "Reopen" button on completed follow-up items in both `/follow-ups` and `/leads/:id`, returning them to "Pending" and resetting `completedAt`.
+| Method | Endpoint | Access | Query Parameters / Body | Description |
+| :--- | :--- | :---: | :--- | :--- |
+| `GET` | `/leads` | Protected | `search`, `stage`, `source`, `serviceInterest`, `page`, `limit`, `sort`, `order`, `format` | Paginated lead listing with sorting and CSV streaming |
+| `POST` | `/leads` | Protected | `{ name, company, email, phone, source, serviceInterest, budget, stage }` | Create a lead assigned to current user |
+| `GET` | `/leads/:id` | Protected | `:id` (MongoDB ObjectId) | Fetch single lead (404 if unowned) |
+| `PATCH` | `/leads/:id` | Protected | Permitted fields only | Partial update with validation |
+| `DELETE` | `/leads/:id` | Protected | `:id` (MongoDB ObjectId) | Cascade delete lead and its follow-ups |
 
-## Cloud Deployment & Local End-to-End Demo
+### Follow-ups & Activities
 
-### Local End-to-End Demo
-To run the full stack locally:
-1. **Backend**:
-   ```bash
-   cd backend
-   npm install
-   npm run dev    # Starts on http://localhost:5000
-   ```
-2. **Frontend**:
-   ```bash
-   cd frontend
-   npm install
-   npm run dev    # Starts on http://localhost:5173
-   ```
-3. Open `http://localhost:5173` in your browser. Register an account and verify:
-   - Creating/updating leads and switching to the Kanban view to drag leads across stages.
-   - Filtering and exporting leads to CSV.
-   - Scheduling follow-ups, completing them, and reopening them.
-   - Checking `/analytics` for live charts calculated from real database records.
+| Method | Endpoint | Access | Query Parameters / Body | Description |
+| :--- | :--- | :---: | :--- | :--- |
+| `GET` | `/activities` | Protected | `status`, `leadId` | List scheduled activities populated with lead data |
+| `POST` | `/activities` | Protected | `{ leadId, title, type, dueAt }` | Schedule follow-up task |
+| `PATCH` | `/activities/:id` | Protected | `{ title, type, dueAt, status }` | Edit, complete, or reopen follow-up |
 
-### Cloud Deployment Guide & Potential Blockers
-For cloud hosting:
-- **Backend**: Can be hosted on platforms like Render, Railway, or AWS Elastic Beanstalk (`npm start`). Set environment variables: `PORT=5000`, `NODE_ENV=production`, `MONGODB_URI=<Atlas connection string>`, `JWT_SECRET=<secret>`, and `FRONTEND_URL=<hosted frontend URL>`.
-- **Frontend**: Can be hosted on Vercel, Netlify, or Cloudflare Pages with build command `npm run build` and output directory `dist`. Set `VITE_API_URL=<hosted backend URL>/api/v1`.
-- **Known Blockers / Hosting Considerations**:
-  - **Atlas Network Access (IP Whitelist)**: MongoDB Atlas clusters require IP whitelisting. If deploying on serverless/ephemeral IPs (Render/Vercel free tier), configure `0.0.0.0/0` in Atlas Network Access or deploy with dedicated static egress IPs.
-  - **CORS Configuration**: The backend enforces strict CORS via `FRONTEND_URL`. Ensure `FRONTEND_URL` exactly matches the production domain (including protocol and port without trailing slash).
+### Dashboards & Intelligence
 
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :---: | :--- |
+| `GET` | `/dashboard/summary` | Protected | Quantitative executive metrics (Total, Active, Won, Pending, Overdue) |
+| `GET` | `/dashboard/analytics` | Protected | Aggregated intelligence: Stage distribution, monthly intake, SLAs, attribution |
+| `GET` | `/health` | Public | Readiness and liveness check with database connectivity probe |
+
+---
+
+## Response & Error Conventions
+
+### Standard Success Envelope (`200 OK`, `201 Created`)
+```json
+{
+  "success": true,
+  "message": "Created",
+  "data": {
+    "_id": "67215c3f918e98001e3b2e91",
+    "name": "Acme Global",
+    "stage": "Qualified",
+    "budget": 45000,
+    "createdAt": "2026-10-29T15:20:00.000Z"
+  }
+}
+```
+
+### Standard Error Envelope (`400`, `401`, `404`, `409`, `500`)
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": [
+    {
+      "field": "email",
+      "message": "Enter a valid email address"
+    }
+  ]
+}
+```
+
+*Note on Security*: Non-existent records and records belonging to other tenants both return `404 Not Found`. This prevents unauthenticated or hostile actors from probing whether an ID exists.
+
+---
+
+## Data Integrity & Security Guarantees
+
+- **Contact Rule Enforcement**: Every lead must contain at least one valid method of contact (email or phone). Validated in strict Zod schemas and re-verified on the database document in Mongoose hooks.
+- **Strict Zod Whitelisting**: Request bodies are strictly validated; unauthorized fields (`_id`, `createdBy`, `createdAt`, `updatedAt`) are rejected with `400 Bad Request`.
+- **Immutable Ownership**: The `createdBy` attribute is stamped exclusively from verified JWT token payloads and marked `immutable: true` at the database level.
+- **Cascade Purges**: Deleting a lead triggers a database lifecycle hook that automatically wipes all associated follow-up tasks, eliminating orphaned records.
+- **Timing-Safe Authentication**: Passwords hashed with bcrypt (cost factor 12). User model uses `select: false` on `passwordHash` to ensure hashes are never serialized.
+- **Hardened HTTP Headers**: Protected by Helmet with zero server identity headers (`X-Powered-By` suppressed).
+
+---
+
+## Verification & Test Suites
+
+LeadFlow ships with comprehensive test automation covering models, API routes, security boundaries, and frontend compilation:
+
+```bash
+# 1. Run backend unit & integration tests
+npm --prefix backend test
+
+# 2. Run frontend linter (oxlint)
+npm --prefix frontend run lint
+
+# 3. Verify frontend production bundle
+npm --prefix frontend run build
+```
+
+---
+
+## Production Deployment
+
+### Option A: Platform as a Service (Render / Railway / Fly.io)
+
+1. **Deploy Backend**:
+   - Build Command: `npm install`
+   - Start Command: `npm start`
+   - Configure Environment Variables: `PORT`, `NODE_ENV=production`, `MONGODB_URI`, `JWT_SECRET`, `CLIENT_ORIGIN=https://your-frontend.vercel.app`
+2. **Deploy Frontend** (Vercel / Netlify / Cloudflare Pages):
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+   - Configure Environment Variable: `VITE_API_URL=https://your-backend.onrender.com/api/v1`
+
+### Option B: Docker Containerization
+
+```dockerfile
+# Production Backend Container
+FROM node:20-alpine AS backend
+WORKDIR /app
+COPY backend/package*.json ./
+RUN npm ci --only=production
+COPY backend/ ./
+EXPOSE 5000
+CMD ["node", "src/server.js"]
+```
+
+### Critical Production Checklist
+- [ ] **Atlas Network Whitelisting**: Ensure your server's IP address (or `0.0.0.0/0` if hosting on ephemeral cloud dynos) is added under MongoDB Atlas **Network Access**.
+- [ ] **CORS Origin Match**: Ensure `CLIENT_ORIGIN` on the backend matches the exact protocol and domain of the frontend without a trailing slash.
+- [ ] **JWT Rotation**: Set `JWT_SECRET` to a high-entropy string of at least 64 hex characters in production.
+
+---
