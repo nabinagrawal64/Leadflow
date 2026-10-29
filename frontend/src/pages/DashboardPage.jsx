@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { CalendarClock, ChevronRight, Plus, Users } from 'lucide-react'
+import { BarChart2, CalendarClock, ChevronRight, Plus, Users } from 'lucide-react'
 import clsx from 'clsx'
 import { activitiesApi, dashboardApi, leadsApi } from '../lib/api'
 import { useAsync } from '../lib/useAsync'
@@ -52,11 +52,11 @@ function Section({ title, to, linkLabel, children }) {
 export default function DashboardPage() {
   const { user } = useAuth()
   const summary = useAsync(() => dashboardApi.summary(), [])
-  const leads = useAsync(() => leadsApi.list(), [])
+  const leads = useAsync(() => leadsApi.list({ limit: 200 }), [])
   const followUps = useAsync(() => activitiesApi.list({ status: 'Pending' }), [])
 
   const s = summary.data || {}
-  const leadList = leads.data || []
+  const leadList = leads.data?.leads || leads.data || []
   const upcoming = [...(followUps.data || [])].sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt)).slice(0, 5)
   const latest = [...leadList].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5)
 
@@ -102,17 +102,21 @@ export default function DashboardPage() {
           <Stat loading={summary.loading} label="Active leads" value={s.activeLeads} to="/leads" />
           <Stat loading={summary.loading} label="Won" value={s.wonLeads} to="/leads?stage=Won" />
           <Stat loading={summary.loading} label="Pending follow-ups" value={s.pendingFollowUps} to="/follow-ups?status=Pending" />
-          <Stat loading={summary.loading} label="Overdue" value={s.overdueFollowUps} to="/follow-ups?status=Pending" alert={s.overdueFollowUps > 0} />
-        </section>
+          <Stat loading={summary.loading} label="Overdue" value={s.overdueFollowUps} to="/follow-ups?status=Pending" alert={s.overdueFollowUps > 0} />        </section>
       )}
 
       {/* Pipeline: the signature element */}
       <section aria-label="Pipeline" className="mt-6 rounded-3xl border border-line bg-surface p-6 sm:p-8">
         <div className="mb-6 flex items-baseline justify-between">
           <h2 className="text-xl font-bold text-ink">Pipeline</h2>
-          <Link to="/leads" className="inline-flex items-center text-sm font-semibold text-primary hover:underline">
-            Open leads <ChevronRight className="size-4" aria-hidden />
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/analytics" className="inline-flex items-center gap-1 text-sm font-semibold text-muted hover:text-primary">
+              <BarChart2 className="size-4" aria-hidden /> Analytics
+            </Link>
+            <Link to="/leads" className="inline-flex items-center text-sm font-semibold text-primary hover:underline">
+              Open leads <ChevronRight className="size-4" aria-hidden />
+            </Link>
+          </div>
         </div>
         {leads.error ? (
           <ErrorState message={leads.error} onRetry={leads.reload} />

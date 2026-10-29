@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage'
 import LeadsPage from './pages/LeadsPage'
 import LeadDetailPage, { NewLeadPage } from './pages/LeadDetailPage'
 import FollowUpsPage from './pages/FollowUpsPage'
+import AnalyticsPage from './pages/AnalyticsPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/leads/new" element={<NewLeadPage />} />
           <Route path="/leads/:id" element={<LeadDetailPage />} />
           <Route path="/follow-ups" element={<FollowUpsPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
         </Route>
       </Route>
 

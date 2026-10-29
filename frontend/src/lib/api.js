@@ -74,10 +74,15 @@ export const authApi = {
 
 export const leadsApi = {
   list: (params) => api.get('/leads', { params }).then(unwrap),
+  exportCsv: (params) => api.get('/leads', { params: { ...params, format: 'csv' }, responseType: 'blob' }).then((r) => r.data),
   get: (id) => api.get(`/leads/${id}`).then(unwrap),
   create: (body) => api.post('/leads', body).then(unwrap),
   update: (id, body) => api.patch(`/leads/${id}`, body).then(unwrap),
   remove: (id) => api.delete(`/leads/${id}`).then(unwrap),
+}
+
+export const analyticsApi = {
+  get: () => api.get('/dashboard/analytics').then(unwrap),
 }
 
 export const activitiesApi = {

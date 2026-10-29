@@ -30,6 +30,7 @@ export default function FollowUpsPage() {
 
   const [showModal, setShowModal] = useState(false)
   const [completingId, setCompletingId] = useState(null)
+  const [reopeningId, setReopeningId] = useState(null)
 
   // Pending first (soonest due on top), then completed (most recent first)
   const items = [...(data || [])].sort((a, b) => {
@@ -51,6 +52,19 @@ export default function FollowUpsPage() {
     }
   }
 
+  const reopen = async (activity) => {
+    setReopeningId(activity._id)
+    try {
+      await activitiesApi.update(activity._id, { status: 'Pending' })
+      toast.success('Follow-up reopened')
+      reload()
+    } catch (err) {
+      toast.error(parseApiError(err).message)
+    } finally {
+      setReopeningId(null)
+    }
+  }
+
   return (
     <>
       <PageHeader
@@ -62,7 +76,7 @@ export default function FollowUpsPage() {
       />
 
       {/* Segmented filter */}
-      <div className="mb-4 inline-flex rounded-full bg-sunk p-1 ring-1 ring-line" role="tablist" aria-label="Filter follow-ups by status">
+      <div className="mb-4 md:w-fit w-full inline-flex rounded-full bg-sunk p-1 ring-1 ring-line" role="tablist" aria-label="Filter follow-ups by status">
         {TABS.map((t) => (
           <button
             key={t.label}
@@ -70,7 +84,7 @@ export default function FollowUpsPage() {
             aria-selected={status === t.value}
             onClick={() => setParams(t.value ? { status: t.value } : {}, { replace: true })}
             className={clsx(
-              'rounded-full px-5 py-2 text-sm font-semibold transition-colors duration-150',
+              'rounded-full px-5 mx-auto py-2 text-sm font-semibold transition-colors duration-150',
               status === t.value ? 'bg-surface text-ink shadow-sm ring-1 ring-line' : 'text-muted hover:text-ink',
             )}
           >
@@ -94,7 +108,14 @@ export default function FollowUpsPage() {
         ) : (
           <ul className={clsx('divide-y divide-line transition-opacity', loading && 'opacity-60')}>
             {items.map((a) => (
-              <FollowUpRow key={a._id} activity={a} onComplete={complete} completing={completingId === a._id} />
+              <FollowUpRow
+                key={a._id}
+                activity={a}
+                onComplete={complete}
+                completing={completingId === a._id}
+                onReopen={reopen}
+                reopening={reopeningId === a._id}
+              />
             ))}
           </ul>
         )}

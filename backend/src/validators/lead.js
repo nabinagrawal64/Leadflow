@@ -37,4 +37,11 @@ export const updateLeadBody = z.strictObject(fields).partial().refine(rejectEmpt
 export const listLeadsQuery = z.object({
   search: z.string().trim().max(100, 'Search is too long').optional(),
   stage: oneOf('Stage', STAGES).optional(),
+  source: oneOf('Source', SOURCES).optional(),
+  serviceInterest: oneOf('Service interest', SERVICES).optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(200).optional().default(50),
+  sort: z.enum(['createdAt', 'name', 'budget', 'stage', 'updatedAt']).optional().default('createdAt'),
+  order: z.enum(['asc', 'desc']).optional().default('desc'),
+  format: z.enum(['json', 'csv']).optional().default('json'),
 })

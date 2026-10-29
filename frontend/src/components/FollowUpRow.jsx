@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { CalendarClock, CheckCircle2, Clock, Mail, Phone, Users } from 'lucide-react'
+import { CalendarClock, CheckCircle2, Clock, Mail, Phone, RotateCcw, Users } from 'lucide-react'
 import clsx from 'clsx'
 import { formatDateTime, formatTime, isOverdue, leadIdOf, leadOf } from '../lib/format'
 import { StatusBadge } from './ui/Badge'
@@ -8,7 +8,7 @@ import DateTile from './DateTile'
 
 const TYPE_ICON = { Call: Phone, Email: Mail, Meeting: Users, Task: CalendarClock }
 
-export default function FollowUpRow({ activity, showLead = true, onComplete, completing }) {
+export default function FollowUpRow({ activity, showLead = true, onComplete, completing, onReopen, reopening }) {
   const Icon = TYPE_ICON[activity.type] || CalendarClock
   const overdue = isOverdue(activity)
   const done = activity.status === 'Completed'
@@ -41,10 +41,16 @@ export default function FollowUpRow({ activity, showLead = true, onComplete, com
 
       <div className="flex items-center justify-between gap-3 sm:justify-end">
         <StatusBadge status={activity.status} overdue={overdue} />
-        {!done && (
+        {!done && onComplete && (
           <Button size="sm" variant="secondary" loading={completing} onClick={() => onComplete(activity)}>
             <CheckCircle2 className="size-4 text-success" aria-hidden />
             Mark complete
+          </Button>
+        )}
+        {done && onReopen && (
+          <Button size="sm" variant="secondary" loading={reopening} onClick={() => onReopen(activity)}>
+            <RotateCcw className="size-4" aria-hidden />
+            Reopen
           </Button>
         )}
       </div>

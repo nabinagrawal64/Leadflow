@@ -24,7 +24,6 @@ export async function listActivities(req, res) {
 export async function createActivity(req, res) {
   const { leadId, ...rest } = req.valid.body
 
-  // The lead must exist and belong to this user (assignment section 4, "Data integrity")
   if (!(await Lead.exists({ _id: leadId, createdBy: req.user._id }))) {
     throw new ApiError(404, 'Lead not found', [{ field: 'leadId', message: 'Lead not found' }])
   }
@@ -34,7 +33,7 @@ export async function createActivity(req, res) {
   sendSuccess(res, activity, 'Created', 201)
 }
 
-// PATCH /activities/:id  (edit fields, or mark complete with { status: "Completed" })
+// PATCH /activities/:id  (edit fields, mark complete, OR reopen with { status: "Pending" })
 export async function updateActivity(req, res) {
   const activity = await findOwned(req)
   activity.set(req.valid.body)

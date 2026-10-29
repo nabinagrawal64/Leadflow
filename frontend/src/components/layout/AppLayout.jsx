@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { CalendarCheck, LayoutDashboard, LogOut, Users } from 'lucide-react'
+import { BarChart2, CalendarCheck, LayoutDashboard, LogOut, Users } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../context/AuthContext'
 import { initials } from '../../lib/format'
@@ -10,6 +10,7 @@ const NAV = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/leads', label: 'Leads', icon: Users },
   { to: '/follow-ups', label: 'Follow-ups', icon: CalendarCheck },
+  { to: '/analytics', label: 'Analytics', icon: BarChart2 },
 ]
 
 export default function AppLayout() {
@@ -26,7 +27,7 @@ export default function AppLayout() {
       <div className="spectrum h-[3px]" aria-hidden />
 
       <header className="sticky top-0 z-30 border-b border-line bg-surface/90 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-10 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-16 max-w-350 items-center gap-10 px-4 sm:px-6 lg:px-8">
           <Link to="/dashboard" aria-label="LeadFlow home">
             <Logo />
           </Link>
@@ -74,7 +75,7 @@ export default function AppLayout() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+      <main className="mx-auto w-full max-w-350 px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         <Outlet />
       </main>
 

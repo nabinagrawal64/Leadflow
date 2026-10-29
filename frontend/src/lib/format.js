@@ -57,3 +57,9 @@ export const greeting = () => {
   const h = new Date().getHours()
   return h < 5 ? 'Still up' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
 }
+
+// Format a year+month object { year, month } as e.g. "Oct 2026"
+export const formatMonth = ({ year, month }) => {
+  const d = new Date(year, month - 1, 1)
+  return d.toLocaleString(undefined, { month: 'short', year: 'numeric' })
+}

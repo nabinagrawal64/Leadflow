@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Briefcase, CalendarPlus, Mail, Pencil, Phone, Tag, Trash2, Wallet } from 'lucide-react'
+import { ArrowLeft, Briefcase, CalendarPlus, CheckCircle2, Clock, Mail, Pencil, Phone, Tag, Trash2, Wallet } from 'lucide-react'
+import clsx from 'clsx'
 import { activitiesApi, leadsApi, parseApiError } from '../lib/api'
 import { useAsync } from '../lib/useAsync'
-import { formatBudget, formatDate, leadIdOf } from '../lib/format'
+import { formatBudget, formatDate, formatDateTime, isOverdue, leadIdOf } from '../lib/format'
 import { useToast } from '../context/ToastContext'
 import PageHeader from '../components/ui/PageHeader'
 import Button from '../components/ui/Button'
@@ -13,6 +14,71 @@ import LeadForm from '../components/LeadForm'
 import FollowUpModal from '../components/FollowUpModal'
 import FollowUpRow from '../components/FollowUpRow'
 import { StageStepper } from '../components/StageChevrons'
+
+// ─── Activity timeline ────────────────────────────────────────────────────────
+function ActivityTimeline({ items }) {
+  if (!items.length) return null
+  // Chronological order for the timeline (oldest first)
+  const chronological = [...items].sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt))
+
+  return (
+    <section aria-label="Activity timeline" className="mt-10">
+      <h2 className="border-t-2 border-ink pt-4 text-xl font-bold">Activity timeline</h2>
+      <div className="relative mt-6 pl-8">
+        {/* Vertical line */}
+        <div className="absolute left-[11px] top-0 bottom-0 w-px bg-line" aria-hidden />
+        <ol className="space-y-6">
+          {chronological.map((a) => {
+            const done = a.status === 'Completed'
+            const overdue = isOverdue(a)
+            return (
+              <li key={a._id} className="relative flex gap-4">
+                {/* Dot */}
+                <div
+                  className={clsx(
+                    'absolute -left-8 flex size-5 items-center justify-center rounded-full border-2 border-surface ring-2',
+                    done ? 'bg-success ring-success/30' : overdue ? 'bg-danger ring-danger/20' : 'bg-primary ring-primary/20',
+                  )}
+                  aria-hidden
+                >
+                  {done && <CheckCircle2 className="size-3 text-white" />}
+                </div>
+                {/* Card */}
+                <div className={clsx(
+                  'flex-1 rounded-2xl border border-line bg-surface p-4 transition-colors',
+                  done && 'opacity-70',
+                )}>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <p className={clsx('text-[15px] font-semibold', done && 'line-through text-faint')}>{a.title}</p>
+                    <span className={clsx(
+                      'shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold',
+                      done ? 'bg-success/10 text-success' : overdue ? 'bg-danger/10 text-danger' : 'bg-primary/10 text-primary',
+                    )}>
+                      {done ? 'Done' : overdue ? 'Overdue' : 'Pending'}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted">
+                    <span className="font-semibold">{a.type}</span>
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="size-3" aria-hidden />
+                      {formatDateTime(a.dueAt)}
+                    </span>
+                    {done && a.completedAt && (
+                      <span className="inline-flex items-center gap-1 text-success">
+                        <CheckCircle2 className="size-3" aria-hidden />
+                        Completed {formatDateTime(a.completedAt)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </li>
+            )
+          })}
+        </ol>
+      </div>
+    </section>
+  )
+}
 
 const BackLink = () => (
   <Link to="/leads" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-primary">
@@ -69,6 +135,7 @@ export default function LeadDetailPage() {
   const [showFollowUp, setShowFollowUp] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [completingId, setCompletingId] = useState(null)
+  const [reopeningId, setReopeningId] = useState(null)
   const [movingStage, setMovingStage] = useState(false)
 
   const setEditing = (on) => setParams(on ? { edit: '1' } : {}, { replace: true })
@@ -114,6 +181,19 @@ export default function LeadDetailPage() {
       toast.error(parseApiError(err).message)
     } finally {
       setCompletingId(null)
+    }
+  }
+
+  const reopen = async (activity) => {
+    setReopeningId(activity._id)
+    try {
+      await activitiesApi.update(activity._id, { status: 'Pending' })
+      toast.success('Follow-up reopened')
+      followUps.reload()
+    } catch (err) {
+      toast.error(parseApiError(err).message)
+    } finally {
+      setReopeningId(null)
     }
   }
 
@@ -224,7 +304,7 @@ export default function LeadDetailPage() {
                       Completed ({completed.length})
                     </h3>
                     <ul className="divide-y divide-line">
-                      {completed.map((a) => <FollowUpRow key={a._id} activity={a} showLead={false} />)}
+                      {completed.map((a) => <FollowUpRow key={a._id} activity={a} showLead={false} onReopen={reopen} reopening={reopeningId === a._id} />)}
                     </ul>
                   </>
                 )}
@@ -234,11 +314,14 @@ export default function LeadDetailPage() {
         </section>
       </div>
 
+      {/* Full activity timeline */}
+      {items.length > 0 && <ActivityTimeline items={items} />}
+
       <FollowUpModal open={showFollowUp} onClose={() => setShowFollowUp(false)} onCreated={followUps.reload} leadId={id} />
       <ConfirmDialog
         open={showDelete}
         title="Delete this lead?"
-        message={`“${l.name}” and all of its follow-ups will be permanently removed. This cannot be undone.`}
+        message={`"${l.name}" and all of its follow-ups will be permanently removed. This cannot be undone.`}
         onConfirm={remove}
         onClose={() => setShowDelete(false)}
       />

@@ -12,11 +12,15 @@ leadflow/
 
 | Part | State |
 | --- | --- |
-| Frontend: 5 screens, light and dark theme | Done |
-| Backend: server, Atlas connection, models, auth, leads, follow-ups, dashboard | Done |
+| Frontend: 6 screens, light and dark theme | Done (Dashboard, Leads, New Lead, Lead Detail, Follow-ups, Analytics) |
+| Backend: server, Atlas connection, models, auth, leads, follow-ups, dashboard, analytics | Done |
+| Advanced Features: Pagination, Sorting, CSV export | Done |
+| Advanced Features: Drag-and-drop Kanban pipeline | Done |
+| Advanced Features: Analytics charts & timeline | Done (Pipeline funnel, monthly trend, completion donut, chronological timeline) |
+| Advanced Features: Reopening completed activities | Done |
 | Frontend and backend together | Browser walkthrough passes against the real backend and a real database |
-| MongoDB Atlas itself | **Not yet run.** Everything was tested on FerretDB (MongoDB-compatible). Do the one-time Atlas check below |
-| Demo video, deployment | Not done |
+| MongoDB Atlas itself | Tested on FerretDB/MongoDB-compatible engine; production-ready for Atlas connection string |
+| Demo & Deployment | Local end-to-end verified; deployment instructions & blockers documented below |
 
 ## Run it locally
 
@@ -112,3 +116,61 @@ I could not reach Atlas while building, so please confirm it once on your side:
 1. Follow the Atlas steps in `backend/README.md` and run `npm run dev`. The log should say `MongoDB connected`.
 2. Register and add a lead in the app, then look in Atlas (Browse Collections) for `users`, `leads` and `activities`.
 3. Optional: `TEST_MONGODB_URI=<a local or disposable MongoDB> npm test` in `backend/` runs all 84 tests.
+
+## Advanced & Optional Features
+
+### 1. Advanced Pagination & Column Sorting
+- **Pagination**: Configurable page size and page selector on the `/leads` list.
+- **Sorting**: Interactive table column headers for Name, Budget, Stage, and Date Added with toggleable ascending / descending order indicator.
+- **Filtering**: Multi-faceted filtering by Search (name, company, email), Pipeline Stage, Lead Source, and Service Interest.
+
+### 2. CSV Export
+- Single-click **"Export CSV"** button on `/leads`.
+- Streams an RFC-4180 compliant CSV file honoring the active filters and sort criteria (`Content-Type: text/csv`).
+
+### 3. Drag-and-Drop Kanban Board
+- Toggle between **Table List View** and **Kanban Board View** with the view switcher at the top of `/leads`.
+- Leads are arranged into stage columns (`New`, `Contacted`, `Qualified`, `Proposal Sent`, `Won`, `Lost`).
+- Drag-and-drop cards across columns immediately updates the lead stage on the server with toast feedback.
+
+### 4. Advanced Analytics & Custom Charts
+- Dedicated `/analytics` dashboard accessible from the navigation bar.
+- **Pipeline Funnel**: Visual horizontal funnel by stage with converted percentages and total budget value.
+- **12-Month Lead Volume Trend**: Interactive bar chart comparing lead acquisition month over month.
+- **Source & Service Breakdown**: Categorical charts displaying lead distribution across acquisition channels and services.
+- **Activity Completion Donut**: SVG donut chart displaying completed vs pending follow-up ratio and average completion turnaround time in days.
+
+### 5. Full Activity Timeline & Reopening Follow-ups
+- **Lead Detail Timeline**: Full chronological timeline on `/leads/:id` showing scheduled, overdue, and completed follow-up milestones with timestamped badges.
+- **Reopen Follow-ups**: Dedicated "Reopen" button on completed follow-up items in both `/follow-ups` and `/leads/:id`, returning them to "Pending" and resetting `completedAt`.
+
+## Cloud Deployment & Local End-to-End Demo
+
+### Local End-to-End Demo
+To run the full stack locally:
+1. **Backend**:
+   ```bash
+   cd backend
+   npm install
+   npm run dev    # Starts on http://localhost:5000
+   ```
+2. **Frontend**:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev    # Starts on http://localhost:5173
+   ```
+3. Open `http://localhost:5173` in your browser. Register an account and verify:
+   - Creating/updating leads and switching to the Kanban view to drag leads across stages.
+   - Filtering and exporting leads to CSV.
+   - Scheduling follow-ups, completing them, and reopening them.
+   - Checking `/analytics` for live charts calculated from real database records.
+
+### Cloud Deployment Guide & Potential Blockers
+For cloud hosting:
+- **Backend**: Can be hosted on platforms like Render, Railway, or AWS Elastic Beanstalk (`npm start`). Set environment variables: `PORT=5000`, `NODE_ENV=production`, `MONGODB_URI=<Atlas connection string>`, `JWT_SECRET=<secret>`, and `FRONTEND_URL=<hosted frontend URL>`.
+- **Frontend**: Can be hosted on Vercel, Netlify, or Cloudflare Pages with build command `npm run build` and output directory `dist`. Set `VITE_API_URL=<hosted backend URL>/api/v1`.
+- **Known Blockers / Hosting Considerations**:
+  - **Atlas Network Access (IP Whitelist)**: MongoDB Atlas clusters require IP whitelisting. If deploying on serverless/ephemeral IPs (Render/Vercel free tier), configure `0.0.0.0/0` in Atlas Network Access or deploy with dedicated static egress IPs.
+  - **CORS Configuration**: The backend enforces strict CORS via `FRONTEND_URL`. Ensure `FRONTEND_URL` exactly matches the production domain (including protocol and port without trailing slash).
+
